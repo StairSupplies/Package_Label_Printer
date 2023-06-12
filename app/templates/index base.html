@@ -1,0 +1,132 @@
+<!--Uses Bootstrap CSS foundation-->
+
+<!--Create HTML Structure-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!--Import Bootstrap CSS-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+
+    <!--Import Custom CSS Files HERE-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/loader.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/numpad-dark.css') }}">
+
+
+    <title>{% block title %}{{ title }}{% endblock %}</title>
+    <link rel="icon" href="{{ url_for('static', filename='Retro Mario.ico') }}" type="image/x-icon">
+</head>
+
+<script>
+    var json_data = {{ json_data|tojson }};
+    console.log(json_data);
+
+    // Access the JSON data in JavaScript
+    var key = json_data.key;
+    console.log(key);
+</script>
+
+<!--Import the Javascript files HERE-->
+<script src="{{ url_for('static', filename='js/Packages/popper.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/Packages/jquery.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/Packages/socket.io.js') }}"></script>
+<script src="{{ url_for('static', filename='js/Packages/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/Packages/jquery.bootstrap-growl.min.js') }}"></script>
+
+<!--Import Custom Javascript files HERE-->
+<!-- <script src="{{ url_for('static', filename='js/Packages/numpad.js') }}"></script> -->
+
+
+
+<!--Web Page-->
+
+<body>
+
+
+    <!--Top Nav Bar setup-->
+    {% block navbar %}
+    <nav class="navbar navbar-light bg-light">
+        <div class="md-col-6">
+            <img src="/static/img/viewrailLogo.png" height="40px" class="d-inline-block align-top mx-3 my-1"
+                alt="VIEWRAIL">
+            <a id="partNumberTitle" class="navbar-brand m-3" style="font-size: 28px">{{ projectTitle }}</a>
+        </div>
+        <div class="col"></div>
+        <!--Sets the function to call when an order is scanned, the "return false" keeps the webpage from reloading. pretty-->
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-qr-code-scan"
+            viewBox="0 0 16 16">
+            <path fill-rule="evenodd"
+                d="M0 .5A.5.5 0 0 1 .5 0h3a.5.5 0 0 1 0 1H1v2.5a.5.5 0 0 1-1 0v-3Zm12 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0V1h-2.5a.5.5 0 0 1-.5-.5ZM.5 12a.5.5 0 0 1 .5.5V15h2.5a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5Zm15 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1 0-1H15v-2.5a.5.5 0 0 1 .5-.5ZM3 3h3v3H3V3Zm0 7h3v3H3v-3Zm7-7h3v3h-3V3ZM7 2H2v5h5V2Zm0 7H2v5h5V9Zm2-7h5v5H9V2ZM4 4h1v1H4V4Zm7 0h1v1h-1V4Zm-6 7H4v1h1v-1Zm3.5-3H8v2h1v1H8v1h2v-2h1v2h1v-1h2v-1h-3V8H8.5Zm1.5 2V9H9v1h1Zm4 3.5V12h-1v1h-2v1h3v-.5Zm-4 .5v-1H8v1h2Zm2-5h2V8h-2v1Z" />
+        </svg>
+
+        <form class="form-group mx-sm-1" id="submit_label">
+            <!-- onsubmit="javascript:scan_label();return false;" -->
+            <div class="input-group mx-sm-1">
+
+                <input type="text" class="form-control m-3" style="height:75%; width: 300px;" id="scan_label"
+                    placeholder="Scan Here..." autofocus autocomplete="off">
+
+            </div>
+
+
+
+
+        </form>
+
+        <!-- <div class="col m-2">
+
+            <input type="checkbox" class="btn-check" id="remove_post_toggle" autocomplete="off" onclick="reset_focus()">
+            <label class="btn btn-outline-danger" style="border-radius: 20px;" for="remove_post_toggle">Remove Post</label>
+
+        </div> -->
+
+        
+        
+        <div class="col">
+           
+        </div>
+
+
+        <div class="mx-2">
+            <button class="btn btn-secondary mx-2" style="height: 50px; border-radius: 25px;" onclick=history.go(0)><svg
+                    xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+                    class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
+                    <path
+                        d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
+                </svg></button>
+                <button class="btn btn-danger" id="settingsButton"  style=" border-radius: 25px; width:50px; height: 50px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" style="margin-top:0px" class="bi bi-gear-fill" viewBox="0 0 16 16">
+                        <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/>
+                      </svg>
+                </button>
+        </div>
+        <div>
+            
+        </div>
+
+    </nav>
+
+
+    {% endblock %}
+
+    <main>
+        <!--All code from index.html will be imported here-->
+        {% block main %}
+
+        {% endblock %}
+    </main>
+
+
+
+
+</body>
+
+
+
+</html>

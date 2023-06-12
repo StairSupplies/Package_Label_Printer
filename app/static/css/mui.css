@@ -1,0 +1,70 @@
+/* This css tweaks the default look and feel of some of the MUI elements*/
+
+.mui-btn--red {
+	background-color: rgba(212, 19, 19,255);
+	border:1px solid #f2f2f2;
+}
+.mui-btn--green {
+	background-color: rgba(18, 116, 48,255);
+	border:1px solid #f2f2f2;
+}
+.mui-btn--black {
+	background-color: rgba(0, 0, 0, 0.5);
+	border:1px solid #f2f2f2;
+}
+.mui-btn--blue {
+	background-color: rgb(33, 150, 243);
+	border:1px solid #f2f2f2;
+}
+.mui-btn--display {
+	background-color: rgba(0,0,0,0);
+	border:1px solid #f2f2f2;
+	width: 100%;
+	border-inline-color: rgba(33, 150, 243);
+}
+.mui-btn {
+	color:rgb(255,255,255);
+}
+.mui-btn:hover {
+	background-color: rgba(0,0,0,.1);
+	color:rgb(255,255,255);
+}
+.mui--outline {
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	border-collapse: separate;
+}
+.mui-form legend {
+	color:rgb(255,255,255);
+}
+.mui-form {
+	background-color: rgb(94, 94, 94);
+	padding: 16px;	
+
+}
+.mui-textfield textarea {
+	color:rgba(255,255,255,.8);
+}
+.mui-textfield textarea::-webkit-input-placeholder {
+	color: rgba(255, 255, 255,.8);
+}
+.mui-textfield input {
+	color:rgba(255,255,255,.8);
+	font-size:20px;
+	border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.mui-textfield input::-webkit-input-placeholder {
+	color: rgba(255, 255, 255,.8);
+}
+
+.mui-tabs__bar>li>a {
+	color: rgb(255, 255, 255,.30);
+
+}
+.mui-tabs__bar>li.mui--is-active>a {
+	color: rgb(255, 255, 255);
+	border-bottom: 3px solid rgb(245, 0, 87);
+	background-color: rgba(255, 255, 255, 0.1);
+	border-top-left-radius: 10%;
+	border-top-right-radius: 10%;
+
+}

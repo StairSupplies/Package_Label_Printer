@@ -1,0 +1,326 @@
+
+body {
+    background-color: rgb(56, 56, 56);
+}
+
+h1 {
+    
+    color: white;
+    font-size: 56px;
+}
+
+h2 {
+    font-size: 36px;
+    color: white;
+}
+
+h3 {
+    color: white;
+    
+}
+h4 {
+    color: white;
+}
+
+#container {
+    padding: 10px;
+    display: flex;
+}
+
+.subtitle {
+    font-size: 18px;
+    color: rgb(78, 78, 78)
+}
+
+.card {
+    background-color: rgb(88, 88, 88);
+    border-radius: 15px;
+}
+
+input[disabled] {
+    opacity: 100%;
+}
+
+.btn-warning {
+    width: 100px;
+}
+
+.btn-danger {
+    width:120px;
+}
+
+#myAnimation {
+    width: 50px;
+    height: 50px;
+    position: absolute;
+    background: red;
+  }
+
+#loading_bar {
+    opacity: 1;
+    transition: opacity, transform, background-color 0.1s;
+    transition-timing-function: cubic-bezier(1, 0.11, 0.22, 2);
+    transition-duration: 0.3s
+}
+
+#loading_bar.fade {
+    opacity: 0;
+    transform: scale(90%);
+}
+
+@keyframes backgroundColorPalette {
+    0% {
+      background: #35b952;
+    }
+    100% {
+        background: #315837;
+  }
+}
+
+  .flashing {
+    animation-name: backgroundColorPalette;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+    animation-direction: normal;
+  }
+
+  .progress-bar-vertical {
+    width: 20px;
+    min-height: 100px;
+    margin-right: 20px;
+    float: left;
+    display: -webkit-box;  /* OLD - iOS 6-, Safari 3.1-6, BB7 */
+    display: -ms-flexbox;  /* TWEENER - IE 10 */
+    display: -webkit-flex; /* NEW - Safari 6.1+. iOS 7.1+, BB10 */
+    display: flex;         /* NEW, Spec - Firefox, Chrome, Opera */
+    align-items: flex-end;
+    -webkit-align-items: flex-end; /* Safari 7.0+ */
+    background-color:darkgrey;
+  }
+  
+  .progress-bar-vertical .progress-bar {
+    width: 100%;
+    height: 0;
+    -webkit-transition: height 0.6s ease;
+    -o-transition: height 0.6s ease;
+    transition: height 0.6s ease;
+  }
+
+.col-md-0-5 { width: 4.17%; } 
+.col-md-1-5 { width: 12.5%; } 
+.col-md-2-5 { width: 20.83333%; } 
+.col-md-3-5 { width: 29.16667%; } 
+.col-md-4-5 { width: 37.5%; } 
+.col-md-5-5 { width: 45.83333%; } 
+.col-md-6-5 { width: 54.16667%; } 
+.col-md-7-5 { width: 62.5%; } 
+.col-md-8-5 { width: 70.83333%; } 
+.col-md-9-5 { width: 79.16667%; } 
+.col-md-10-5 { width: 87.5%; } 
+.col-md-11-5 { width: 95.8333%; } 
+
+/* The switch - the box around the slider */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 180px;
+    height: 50px;
+  }
+  
+  /* Hide default HTML checkbox */
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  /* The slider */
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 40px;
+    width: 40px;
+    left: 5px;
+    bottom: 5px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  input:checked + .slider {
+    background-color: #2196F3;
+    color:white;
+  }
+  
+  input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+  }
+  
+  input:checked + .slider:before {
+    -webkit-transform: translateX(130px);
+    -ms-transform: translateX(130px);
+    transform: translateX(130px);
+  }
+  
+  /* Rounded sliders */
+  .slider.round {
+    border-radius: 34px;
+  }
+  
+  .slider.round:before {
+    border-radius: 50%;
+  }
+
+
+
+
+
+  .red_switch {
+    position: relative;
+    display: inline-block;
+    width: 200px;
+    height: 50px;
+    text-align: center;
+    
+  }
+  
+  /* Hide default HTML checkbox */
+  .red_switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  /* The slider */
+  .red_slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  .red_slider:before {
+    position: absolute;
+    content: "";
+    height: 40px;
+    width: 40px;
+    left: 5px;
+    bottom: 5px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+
+  }
+  
+  input:checked + .red_slider {
+    background-color: #d63c3c;
+    color:white;
+  }
+  
+  input:focus + .red_slider {
+    box-shadow: 0 0 1px #d63c3c;
+  }
+  
+  input:checked + .red_slider:before {
+    -webkit-transform: translateX(150px);
+    -ms-transform: translateX(150px);
+    transform: translateX(150px);
+  }
+  
+  /* Rounded sliders */
+  .red_slider.round {
+    border-radius: 34px;
+  }
+  
+  .red_slider.round:before {
+    border-radius: 50%;
+  }
+
+
+  
+
+
+
+  
+  .green_switch {
+    position: relative;
+    display: inline-block;
+    width: 150px;
+    height: 50px;
+    text-align: center;
+    
+  }
+  
+  /* Hide default HTML checkbox */
+  .green_switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  /* The slider */
+  .green_slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  .green_slider:before {
+    position: absolute;
+    content: "";
+    height: 40px;
+    width: 40px;
+    left: 5px;
+    bottom: 5px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+
+  }
+  
+  input:checked + .green_slider {
+    background-color: #46b44c;
+    color:white;
+  }
+  
+  input:focus + .green_slider {
+    box-shadow: 0 0 1px #46b44c;
+  }
+  
+  input:checked + .green_slider:before {
+    -webkit-transform: translateX(130px);
+    -ms-transform: translateX(130px);
+    transform: translateX(130px);
+  }
+  
+  /* Rounded sliders */
+  .green_slider.round {
+    border-radius: 34px;
+  }
+  
+  .green_slider.round:before {
+    border-radius: 50%;
+  }

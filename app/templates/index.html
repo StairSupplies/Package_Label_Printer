@@ -1,0 +1,192 @@
+{% extends "index base.html" %} {% block main %}
+<script src="{{ url_for('static', filename='js/index.js') }}"></script>
+<div class="m-3 position-relative">
+  <div class="position-absolute top-0 start-50 translate-middle-x">
+    <div id="loading_bar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary fade"
+      role="progressbar" style="width: 600px; height: 80px; border-radius: 40px" aria-valuenow="30" aria-valuemin="0"
+      aria-valuemax="100"></div>
+  </div>
+</div>
+<br /><br /><br />
+<var id="selectOverride" hidden>{{ autoSelect }}</var>
+<div class="container-fluid" id="completed_container" style="text-align:center; padding-left: 20%; padding-right: 20%">
+
+  <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalTitle"
+    aria-hidden="true" width="200px">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+      <div class="modal-content" style="border-radius: 20px;">
+        <div class="modal-header">
+          <h5 class="modal-title" id="settingsModalLongTitle">Printer Settings</h5>
+
+        </div>
+        <div class="modal-body">
+
+          <h3 style="color: black; text-align: center;">CUPS Printer Settings</h1>
+            <p style="color: black; text-align: center;">Enter the CUPS Printer Name and the Label Type. (Printer must
+              be in CUPS)<br>Use up to 3 Printers</p>
+            <br>
+            <form class="form-group mx-1" id="packageOverrideScanForm">
+              <div class="input-group" style="width:400px">
+                <span class="input-group-text" id="inputGroup-sizing-lg">Printer 1
+                </span>
+                <input type="text" id="printer_1_name_input" class="form-control" value=""
+                  aria-label="Sizing example input" aria-describedby="inputGroup-sizing-lg">
+              </div>
+
+              <div class="input-group" style="width:400px">
+                <span class="input-group-text">Type</span>
+                <select class="form-select" id="printer_1_type_input">
+                  <option value="none">None</option>
+                  <option value="large_address">Large Address</option>
+                  <option value="packing" selected>Packing</option>
+                  <option value="letter">Letter</option>
+                  <option value="post">Post (4" x 4")</option>
+                  <option value="autobag">Autobag</option>
+                </select>
+              </div>
+              <br>
+              <div class="input-group" style="width:400px">
+                <span class="input-group-text" id="inputGroup-sizing-lg">Printer 2
+                </span>
+                <input type="text" id="printer_2_name_input" class="form-control" value=""
+                  aria-label="Sizing example input" aria-describedby="inputGroup-sizing-lg">
+              </div>
+
+              <div class="input-group" style="width:400px">
+                <span class="input-group-text">Type</span>
+                <select class="form-select" id="printer_2_type_input">
+                  <option value="none">None</option>
+                  <option value="large_address">Large Address</option>
+                  <option value="packing" selected>Packing</option>
+                  <option value="letter">Letter</option>
+                  <option value="post">Post (4" x 4")</option>
+                  <option value="autobag">Autobag</option>
+                </select>
+              </div>
+
+              <br>
+              <div class="input-group" style="width:400px">
+                <span class="input-group-text" id="inputGroup-sizing-lg">Printer 3
+                </span>
+                <input type="text" id="printer_3_name_input" class="form-control" value=""
+                  aria-label="Sizing example input" aria-describedby="inputGroup-sizing-lg">
+              </div>
+
+              <div class="input-group" style="width:400px">
+                <span class="input-group-text">Type</span>
+                <select class="form-select" id="printer_3_type_input">
+                  <option value="none">None</option>
+                  <option value="large_address">Large Address</option>
+                  <option value="packing" selected>Packing</option>
+                  <option value="letter">Letter</option>
+                  <option value="post">Post (4" x 4")</option>
+                  <option value="autobag">Autobag</option>
+                </select>
+              </div>
+
+
+              <!-- <div class="input-group" style="width:200px">
+                        <span class="input-group-text" id="inputGroup-sizing-lg">Every # of
+                            Posts:
+                        </span>
+                        <input type="dropdown" id="printer_1_type_dd" class="form-control" value="250"
+                            aria-label="Sizing example input" aria-describedby="inputGroup-sizing-lg">
+                      </div> -->
+
+            </form>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="cancelSettingsModal" class="btn btn-lg btn-secondary m-1"
+            style="border-radius: 30px;" data-dismiss="modal">Cancel</button>
+          <button type="button" id="submitSettingsModal" style="border-radius: 30px; width: 200px; color: white"
+            class="btn btn-lg btn-success m-1" data-dismiss="modal">Apply</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+
+  <div>
+    <h1>Select a Label Type</h1>
+    <h3>Then Scan a Package</h3>
+    <br>
+    <div class="row">
+      <div class="col-4">
+        <div class="form-check">
+          <input class="btn-check" type="radio" name="flexRadioDefault" id="standardLabel">
+          <label class="btn btn-outline-secondary"
+            style="font-size: 28px; width: 300px;height:500px;border-radius: 25px;" for="standardLabel">PACKAGE MANIFEST
+            LABELS<br>
+            <p style="font-size: 18px;">(Scan Package Label)</p>
+            <img src="\static\img\standard_list_ex.JPG" style="width: 100%; border-radius: 15px">
+            <p style="font-size: 14px">(example)</p>
+            <br>
+            <p style="font-size: 14px">Selected Printer(s)</p>
+            <div class="input-group">
+              <span class="input-group-text">Label</span>
+              <select class="form-select" id="manifest_label_printer_select">
+              </select>
+            </div>
+          </label>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="form-check">
+          <input class="btn-check" type="radio" name="flexRadioDefault" id="stringerLabel">
+          <label class="btn btn-outline-secondary"
+            style="font-size: 36px; width:300px; height:500px; border-radius:25px;" for="stringerLabel">STRINGER
+            LABELS<br>
+            <p style="font-size: 18px;">(Scan Stringer Package Label)</p>
+
+            <img src="\static\img\stringer_list_ex.JPG" style="width: 100%; border-radius: 15px">
+            <p style="font-size: 14px">(example)</p>
+
+            <p style="font-size: 14px">Selected Printer(s)</p>
+            <div class="input-group">
+              <span class="input-group-text">QR Label</span>
+              <select class="form-select" id="stringer_qr_label_printer_select">
+              </select>
+            </div>
+            <p></p>
+            <div class="input-group">
+              <span class="input-group-text">Flight Print</span>
+              <select class="form-select" id="stringer_print_printer_select">
+              </select>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="col-4">
+        <div class="form-check">
+          <input class="btn-check" type="radio" name="flexRadioDefault" id="metalHandrailLabel">
+          <label class="btn btn-outline-secondary"
+            style="font-size: 36px; width: 300px;height:500px;border-radius: 25px;" for="metalHandrailLabel">HANDRAIL
+            LABELS
+            <br>
+            <p style="font-size: 18px;">(Scan Data Matrix Dot Peen)</p>
+            <img src="\static\img\metal_handrail_example.jpg" style="width: 100%; border-radius: 15px">
+            <p style="font-size: 14px">(example)</p>
+            <br>
+            <br>
+            <p style="font-size: 14px">Selected Printer(s)</p>
+            <div class="input-group">
+              <span class="input-group-text">Label</span>
+              <select class="form-select" id="metal_handrail_printer_select">
+              </select>
+            </div>
+          </label>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  {% endblock %}
+</div>
+</div>
+</div>

@@ -1,0 +1,7 @@
+[CONNECTION]
+URL = http://terminal.stairsupplies.com/graphql
+TOKEN = tokenhere
+OUTPUT: ./output/
+
+
+
