@@ -196,6 +196,44 @@ def bulkPrintExpressPost(details_dict):
         success_bool = False
     
     socketio.emit("fromBulkPrintExpressPost", (message, success_bool), room=session)
+    
+
+# Print Matt's cool label
+@socketio.on("printMattsLabel")
+def printMattsLabel(details_dict):
+    print("Printing Matt's Cool Label")
+    session = request.sid
+    print(details_dict)
+    success_message = "Label Sent to Printer"
+    # try:
+    #     if details_dict["config"] == "angle" and details_dict["height"] == "42":
+    #         message = "Angle 42\" Express Posts do not Exist. No Labels Printed"
+    #         success_bool = False
+    #     else:
+    #         url = f"http://{SERVER_IP}:5050/static/bulk_pdf/express_post/{details_dict['config']} {details_dict['height']}.pdf"
+    #         print(url)
+            
+    #         #Try 2 times to print the stickers
+    #         response_code = send_request_printall(url, details_dict["printer"], int(details_dict["quantity"]))
+    #         if response_code != 200:
+    #             time.sleep(1)
+    #             response_code = send_request_printall(url, details_dict["printer"], int(details_dict["quantity"]))
+    #             if response_code != 200:
+    #                 message = "Cannot Connect to Print Server/Printer<br>Label(s) Not Printed<br>Status: "+ str(response_code)
+    #                 success_bool = False
+    #             else:
+    #                 success_bool = True
+    #                 message = success_message
+    #         else:
+    #             success_bool = True
+    #             message = success_message
+            
+    # except Exception as error:
+    #     traceback.print_exc()
+    #     message = error
+    #     success_bool = False
+    
+    # socketio.emit("fromPrintMattsLabel", (message, success_bool), room=session)
 
 @socketio.on("updatePrintSettings")
 def updatePrintSettings(update_json):
