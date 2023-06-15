@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
     setInterval(checkExpressInput, 1000)
 
     numpad.attach({
-        target: "matts_quantity_input",
+        target: "bev_hand_quantity_input",
         max: 3, // 3 DIGITS MAX
         decimal: false
     });
@@ -64,12 +64,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     printer_name_list = [json_data.printer_1.name, json_data.printer_2.name, json_data.printer_3.name,]
 
-    create_printer_dropdown("matts_label_printer_select", "post")
+    create_printer_dropdown("bev_hand_label_printer_select", "post")
 
 
-    express_post_label_btn = document.getElementById("matts_label_btn")
+    express_post_label_btn = document.getElementById("bev_hand_label_btn")
     express_post_label_btn.onclick = function () {
-        $('#matts_Modal').modal('show')
+        $('#bev_hand_Modal').modal('show')
     }
 
 
@@ -84,35 +84,31 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    modalExpressPostCancel = document.getElementById("cancel_matts_modal")
+    modalExpressPostCancel = document.getElementById("cancel_bev_hand_modal")
     modalExpressPostCancel.onclick = function () {
-        $('#matts_Modal').modal('hide')
+        $('#bev_hand_Modal').modal('hide')
     }
 
 
-    // Matt's button
-    print_matts_submit = document.getElementById("print_matts_submit")
-    print_matts_submit.onclick = function () {
-        var express_post_config = document.getElementById("matts_config_input")
-        var express_post_feet = document.getElementById("matts_feet_input")
-        var express_post_inches = document.getElementById("matts_inches_input")
-        var express_post_quantity = document.getElementById("matts_quantity_input")
-        var bulk_express_label_printer_select = document.getElementById("matts_label_printer_select")
+    // Beverage and Handrail button
+    print_bev_hand_submit = document.getElementById("print_bev_hand_submit")
+    print_bev_hand_submit.onclick = function () {
+        var express_post_config = document.getElementById("bev_hand_config_input")
+        var express_post_quantity = document.getElementById("bev_hand_quantity_input")
+        var bulk_express_label_printer_select = document.getElementById("bev_hand_label_printer_select")
 
         var express_json = {
             "config": express_post_config.value,
-            "feet": express_post_feet.value,
-            "inches": express_post_inches.value,
             "quantity": express_post_quantity.value,
             "printer": bulk_express_label_printer_select.value,
         }
 
 
-        socket.emit("printMattsLabel", express_json)
-        //bootstrapAlert("<h3 style='color: green'><h3>", "success")
-        express_post_quantity.value = ""
+        socket.emit("printBevHandLabel", express_json)
+        // bootstrapAlert("<h3 style='color: green'><h3>", "success")
+        express_post_quantity.value = "1"
         print_express_post_submit.disabled = true
-        $('#express_post_Modal').modal('hide')
+        $('#bev_hand_Modal').modal('hide')
         return false
     }
 
@@ -140,7 +136,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     })
 
-    socket.on("fromPrintMattsLabel", function (message, successBool) {
+    socket.on("fromPrintBevHandLabel", function (message, successBool) {
 
         if (successBool == true) {
             bootstrapAlert("<h3 style='color: green'>" + message + "<h3>", "success")
@@ -316,26 +312,16 @@ async function create_printer_dropdown(id, label_type) {
     }
 }
 
-async function checkMattsInput() {
-    var quantity = document.getElementById("matts_quantity_input");
-    var feet = document.getElementById("matts_feet_input");
-    var inches = document.getElementById("matts_inches_input");
-    var submitButton = document.getElementById("print_matts_submit");
+async function checkBevHandInput() {
+    var quantity = document.getElementById("bev_hand_quantity_input");
+    var submitButton = document.getElementById("print_bev_hand_submit");
 
-    // Check if quantity, feet, and inches are valid
+    // Check if quantity is valid
     // If not, disable submit
     submitButton.disabled = true;
     if (quantity.value === "" || (isNaN(quantity.value))) { // Pass
     }
     else if (quantity.value < 1) {  // Pass
-    }
-    else if (feet.value === "" || (isNaN(feet.value))) { // Pass
-    }
-    else if (feet.value < 1) { // Pass
-    }
-    else if (inches.value === "" || (isNaN(inches.value))) { // Pass
-    }
-    else if (inches.value < 0 || inches.value > 11) { // Pass
     }
     else {
         submitButton.disabled = false;
