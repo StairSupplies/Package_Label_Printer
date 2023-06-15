@@ -5,13 +5,11 @@ from flask_cors import CORS
 
 
 
-from api.application import create_app
+#app = Flask(__name__)
 
-if __name__ == '__main__':
-    create_app = create_app()
-    create_app.run()
-else:
-    gunicorn_app = create_app()
+#adds a security key found in the config.py file for protection
+#CORS(app)
+#app.config.from_pyfile('config.py')
 
 socketio = SocketIO(app)
 
