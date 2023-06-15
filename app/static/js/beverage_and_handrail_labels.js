@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     printer_name_list = [json_data.printer_1.name, json_data.printer_2.name, json_data.printer_3.name,]
 
-    create_printer_dropdown("bev_hand_label_printer_select", "post")
+    create_printer_dropdown("bev_hand_label_printer_select", "packing")
 
 
     express_post_label_btn = document.getElementById("bev_hand_label_btn")
@@ -252,23 +252,28 @@ async function showProgressBar(action, alertMessage) {
 
 
 async function set_printer_settings_from_server(json_data) {
+
+    // Printer 1
     printer_1_name_input = document.getElementById("printer_1_name_input")
     printer_1_name_input.value = json_data.printer_1.name
 
     printer_1_type_input = document.getElementById("printer_1_type_input")
     printer_1_type_input.value = json_data.printer_1.type
 
+    // Printer 2
     printer_2_name_input = document.getElementById("printer_2_name_input")
     printer_2_name_input.value = json_data.printer_2.name
 
     printer_2_type_input = document.getElementById("printer_2_type_input")
     printer_2_type_input.value = json_data.printer_2.type
 
+    // Printer 3
     printer_3_name_input = document.getElementById("printer_3_name_input")
     printer_3_name_input.value = json_data.printer_3.name
 
     printer_3_type_input = document.getElementById("printer_3_type_input")
     printer_3_type_input.value = json_data.printer_3.type
+
 
     submitSettingsModalButton = document.getElementById("submitSettingsModal")
     submitSettingsModalButton.onclick = function () {

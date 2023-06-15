@@ -1,6 +1,6 @@
 {% extends "index base.html" %} {% block main %}
 <script src="{{ url_for('static', filename='js/bulk labels.js') }}"></script>
-<script src="{{ url_for('static', filename='js/matts labels.js') }}"></script>
+<script src="{{ url_for('static', filename='js/beverage_and_handrail_labels.js') }}"></script>
 <script src="{{ url_for('static', filename='js/Packages/numpad_dblclick.js') }}"></script>
 
 <div class="m-3 position-relative">
@@ -144,7 +144,7 @@
                     </span>
                     <input type="text" id="express_post_quantity_input" class="form-control"
                       aria-label="Sizing example input" aria-describedby="inputGroup-sizing-lg"
-                      oninput="checkExpressInput()">
+                      oninput="checkExpressInput()" value="1">
                   </div>
                   <br>
                   <div class="input-group" style="width:300px">
@@ -253,7 +253,7 @@
             style="font-size: 32px; width: 300px;height:500px;border-radius: 25px;"
             for="standardLabel">BEVERAGE AND
             HANDRAIL LABELS<br><br>
-            <img src="\static\img\express_post_example.JPG" style="width: 100%; border-radius: 15px">
+            <img src="\static\img\beverage_example.PNG" style="width: 100%; border-radius: 15px">
             <p style="font-size: 14px">(example)</p>
         </label>
         </div>

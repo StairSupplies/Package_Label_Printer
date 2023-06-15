@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         socket.emit("bulkPrintExpressPost", express_json)
         //bootstrapAlert("<h3 style='color: green'><h3>", "success")
-        express_post_quantity.value = ""
+        express_post_quantity.value = "1"
         print_express_post_submit.disabled = true
         $('#express_post_Modal').modal('hide')
         return false
@@ -315,13 +315,18 @@ async function create_printer_dropdown(id, label_type) {
 }
 
 async function checkExpressInput() {
-    var inputField = document.getElementById("express_post_quantity_input");
+    var quantity = document.getElementById("express_post_quantity_input");
     var submitButton = document.getElementById("print_express_post_submit");
-    if (inputField.value !== "" && (!isNaN(inputField.value))) {
-
+    
+    // Check if quantity is valid
+    // If not, disable submit
+    submitButton.disabled = true;
+    if (quantity.value === "" || (isNaN(quantity.value))) { // Pass
+    }
+    else if (quantity.value < 1) {  // Pass
+    }
+    else {
         submitButton.disabled = false;
-    } else {
-        submitButton.disabled = true;
     }
 }
 
