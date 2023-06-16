@@ -5,8 +5,6 @@ from flask import Flask
 from flask_socketio import SocketIO, send
 # from waitress import serve
 
-
-
 app = Flask(__name__, static_url_path='/static')
 print("Init! Shazam! Server")
 
