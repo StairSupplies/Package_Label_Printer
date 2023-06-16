@@ -5,7 +5,13 @@ from flask_socketio import SocketIO, emit
 
 if globals.local:
     import waitress
+    # from __init__ import app
+    from terminalDBFunctions import *
+    from pdf import *
+    app = globals.app
 else:
+    from app.terminalDBFunctions import *
+    from app.pdf import *
     from app import app
 
 import json
@@ -13,8 +19,7 @@ import regex as re
 import traceback
 import time
 
-from app.terminalDBFunctions import *
-from app.pdf import *
+
 
 
 socketio = SocketIO(app, cors_allowed_origins="*", access_control_allow_origins="*")

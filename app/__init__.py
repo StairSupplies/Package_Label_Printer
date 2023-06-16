@@ -1,4 +1,5 @@
 #Initializes Flask Server Parameters
+import os
 import globals
 from flask import Flask
 from flask_socketio import SocketIO, send
@@ -9,6 +10,7 @@ from flask_socketio import SocketIO, send
 app = Flask(__name__, static_url_path='/static')
 print("Init! Shazam! Server")
 
+socketio = SocketIO(app)
 
 #adds a security key found in the config.py file for protection
 #app.config.from_object(Config)
@@ -23,7 +25,8 @@ print("Init! Shazam! Server")
 #import views.py under all things above
 if __name__ == '__main__':
     globals.local = True
+    globals.app = app
+    os.environ['FLASK_ENV'] = 'production'
     import routes
 else:
-    socketio = SocketIO(app)
     from app import routes

@@ -1,1 +1,2 @@
 local = False
+app = None

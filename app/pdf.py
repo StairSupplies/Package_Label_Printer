@@ -22,9 +22,16 @@ import requests
 import random
 import string
 
-from .terminalDBFunctions import *
-from .terminalFileUploader import *
-from .utils import *
+import globals
+
+if globals.local:
+    from terminalDBFunctions import *
+    from terminalFileUploader import *
+    from utils import *
+else:
+    from .terminalDBFunctions import *
+    from .terminalFileUploader import *
+    from .utils import *
 
 LABEL_PATH = ''
 
@@ -36,7 +43,13 @@ PDF_FOLDER = os.getcwd()+"//app//static//download_temp_files//"
 #import ahk
 import regex as re
 #from .GoogleChatBot import *
-from .utils import LETTER_DICT
+
+# Try to import one way, if it fails, try the other way
+try:
+    from utils import LETTER_DICT
+except:
+    from .utils import LETTER_DICT
+
 
 
 def createManifestLabel(packageID, resultsDF, SERVER_IP, printer):
