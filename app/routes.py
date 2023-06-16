@@ -1,6 +1,13 @@
+import globals
 from flask import render_template, request
-from flask_socketio import SocketIO, emit 
-from app import app
+from flask_socketio import SocketIO, emit
+
+
+if globals.local:
+    import waitress
+else:
+    from app import app
+
 import json
 import regex as re
 import traceback
@@ -238,4 +245,6 @@ def updatePrintSettings(update_json):
     print(hostname)
     print(update_json)
     update_printer_settings(update_json, hostname)
-    
+
+if globals.local:
+    waitress.serve(app, host='0.0.0.0', port=5050, threads=5) #WAITRESS!

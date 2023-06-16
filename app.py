@@ -12,6 +12,7 @@ from flask_cors import CORS
 #app.config.from_pyfile('config.py')
 
 socketio = SocketIO(app)
+print("You weren't expecting to see this, but it's here to! An app")
 
 #import views.py under all things above
 from app import routes
