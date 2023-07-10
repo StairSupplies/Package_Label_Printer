@@ -1,0 +1,6 @@
+hostname,printer_1_name,printer_1_type,printer_2_name,printer_2_type,printer_3_name,printer_3_type
+192.168.60.41,adm1756-dymo,packing,adm1756-letter,letter,name_other,autobag
+192.168.60.101,adm1756-dymo,packing,Letter,letter,,none
+192.168.60.141,adm1756-dymo,post,,none,,none
+127.0.0.1,testadf,packing,NaN,none,NaN,none
+192.168.60.94,adm1259-zebra,post,printer_2,none,printer_3,none

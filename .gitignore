@@ -130,4 +130,3 @@ dmypy.json
 .pyre/
 
 .credentials
-printer_settings.csv
