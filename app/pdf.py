@@ -456,7 +456,9 @@ def createStringerLabel(packageID, resultsDF, orderNumber, orderID, SERVER_IP, S
     return True
 
 def createHandrailLabel(resultsDF, SERVER_IP, SERVER_URL, printer):
-    print(resultsDF.columns)
+    print("Here's the good stuff")
+    print(resultsDF)
+    # print(resultsDF.columns)
     #Set Paths to Images
     logo = os.getcwd()+"/app/static/img/viewrailLogoBW.png"
 
@@ -499,7 +501,7 @@ def createHandrailLabel(resultsDF, SERVER_IP, SERVER_URL, printer):
         #pdf.text(1.25, 1.8, txt=resultsDF.at[0,"piece_number"])
 
         pdf.set_xy(1.25, 1.4)  # Position of the text
-        pdf.cell(1.8, .2, resultsDF.at[0,"piece_number"], align="C", border=False)
+        pdf.cell(1.8, .2, f"{resultsDF.at[0,'piece_number']}", align="C", border=False)
 
         url = resultsDF.at[0,"product.website_image_override_url"]
         profile_image_filename = download_file(url, "handrail_profile.jpg")
@@ -512,6 +514,8 @@ def createHandrailLabel(resultsDF, SERVER_IP, SERVER_URL, printer):
         #pdf.text(5.2, 2.1, txt=profile_name)
         pdf.set_xy(5.2, 2)  # Position of the text
         pdf.cell(1.5, .2, profile_name, align="C", border=False)
+        pdf.set_xy(5.2, 0.3) # Position of the text
+        pdf.cell(1.5, .2, f"{resultsDF.at[0,'product.handrail_length']}ft", align='C', border=False)
 
         #remove row from Dataframe after rendering pdf row
         resultsDF = resultsDF.drop(index=index)
