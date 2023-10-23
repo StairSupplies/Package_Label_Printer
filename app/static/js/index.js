@@ -106,7 +106,6 @@ document.addEventListener("DOMContentLoaded", function () {
             printer_1_name = stringer_qr_label_printer_select.value
             printer_2_name = ""
             printer_3_name = ""
-            
         }
         else{
             currentSelectedLabel = "manifest"
@@ -115,7 +114,6 @@ document.addEventListener("DOMContentLoaded", function () {
             printer_3_name = ""
         }
 
-        
         // printer_1_name = stringer_qr_label_printer_select.value
         // printer_2_name = stringer_print_printer_select.value
         // printer_3_name = ""
