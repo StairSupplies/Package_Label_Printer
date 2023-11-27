@@ -113,7 +113,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    socket.on("fromScanLabel", function (successBool, postJSON) {
+    socket.on("from_scan_submit", function (successBool, postJSON) {
         document.getElementById("scan_label").value = '';
 
         if (successBool == true) {

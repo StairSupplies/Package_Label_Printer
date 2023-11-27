@@ -1,0 +1,13 @@
+mutation file_uoload($file_object: Upload!, $id_type:RelationType!, $id: ID!) { 
+        uploadFiles(input:{
+        files: [$file_object]
+        fileable_id: $id
+        fileable_type: $id_type
+        fileable_group: CUSTOMER
+        }
+        ) {
+            id 
+            name  
+            url
+        }
+        }

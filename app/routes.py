@@ -6,7 +6,7 @@ import regex as re
 import traceback
 import time
 
-from app.terminalDBFunctions import *
+from app.db_utils import *
 from app.pdf import *
 
 
@@ -28,22 +28,24 @@ SERVER_URL = f"http://{SERVER_IP}:5050/static/download_temp_files/"
 print(SERVER_URL)
 
 #Render page for Scan Input
+# @app.route('/custom', methods=['POST', 'GET'])
+# def custom_default():
+#     hostname = request.remote_addr
+#     print(hostname)
+#     #look for existing settings for this ip
+#     json_data = get_printer_settings(hostname)
+
+#     #if no entry for this printer, create one
+#     if json_data == {}:
+#         create_settings_entry(hostname)
+#         json_data = get_printer_settings(hostname)
+
+#     title = "Custom Package Labels"
+#     return render_template("index.html", title=title, projectTitle=title, autoSelect="", json_data=json_data)
+
 @app.route('/custom', methods=['POST', 'GET'])
-def index1():
-    hostname = request.remote_addr
-    print(hostname)
-    json_data = get_printer_settings(hostname)
-
-    if json_data == {}:
-        create_settings_entry(hostname)
-        json_data = get_printer_settings(hostname)
-
-    title = "Custom Label Printing"
-    return render_template("index.html", title=title, projectTitle=title, autoSelect="", json_data=json_data)
-
-
 @app.route('/custom/<preset>', methods=['POST', 'GET'])
-def index2(preset):
+def custom_preset(preset=str):
     hostname = request.remote_addr
     print(hostname)
     json_data = get_printer_settings(hostname)
@@ -51,9 +53,11 @@ def index2(preset):
     if json_data == {}:
         create_settings_entry(hostname)
         json_data = get_printer_settings(hostname)
-
+    
+    if preset == None:
+        preset = ""
     print(json_data)
-    title = "Custom Label Printing"
+    title = "Customized Package Labels"
     return render_template("index.html", title=title, projectTitle=title, autoSelect=preset, json_data=json_data)
 
 
@@ -75,65 +79,59 @@ def bulk():
 #Post Label Creation Screen: postLabelCreate.js
 
 #When an order is scanned, create a label
-@socketio.on("scanLabel")
-def scanLabel(rawScanData, labelType, selected_printers):
+@socketio.on("scan_submit")
+def scan_submit(rawScanData, label_type, selected_printers):
     session = request.sid
     hostname = request.remote_addr
     #Delete old label files
     remove_temp_files()
-    print(labelType)
-    
-   
-    
+    print(label_type)
 
-    #Query for all unpacked Small Parts
-   
-    
-    #Make and Print a label
-    
     try:
-        if labelType == "stringer":
+        if label_type == "stringer":
             try:
                 package = json.loads(rawScanData)
-                packageID = int(package["package_id"])
+                package_id = int(package["package_id"])
             #if not, try a raw scan input
             except:
                 print("Raw Order Input Detected")
                 if re.search(r"\d+", rawScanData): 
-                    packageID = int(rawScanData)
+                    package_id = int(rawScanData)
                 else:
-                    socketio.emit("fromScanLabel", (False, "invalid"))
+                    socketio.emit("from_scan_submit", (False, "invalid"))
                     return 
-            resultsDF, orderNumber, orderID = getParts(packageID)
+            items_df, orderNumber, orderID = get_package_items(package_id)
             
-            if len(resultsDF) == 1:
+            #Print a label if there is only one item in the package Stringer = 1 Item
+            if len(items_df) == 1:
+                
                 if selected_printers[0] != "None":
-                    createStringerLabel(packageID, resultsDF, orderNumber, orderID, SERVER_IP, SERVER_URL, selected_printers[0])
+                    createStringerLabel(package_id, resultsDF, orderNumber, orderID, SERVER_IP, SERVER_URL, selected_printers[0])
                 if selected_printers[1] != "None":
                     printPDFlabel(resultsDF, "CUSTOMER INSTALL", "pdf_1_HL.pdf", SERVER_URL, selected_printers[1])
             else:
-                createMultiStringerLabel(packageID, resultsDF, orderNumber, orderID, SERVER_URL, selected_printers)
+                createMultiStringerLabel(package_id, resultsDF, orderNumber, orderID, SERVER_URL, selected_printers)
                 printPDFlabel(resultsDF, "CUSTOMER INSTALL", "pdf_1_HL.pdf", SERVER_URL, selected_printers[1])
         
 
-        elif labelType == "manifest":
+        elif label_type == "manifest":
             try:
                 package = json.loads(rawScanData)
-                packageID = int(package["package_id"])
+                package_id = int(package["package_id"])
             #if not, try a raw scan input
             except:
                 print("Raw Order Input Detected")
                 if re.search(r"\d+", rawScanData): 
-                    packageID = int(rawScanData)
+                    package_id = int(rawScanData)
                 else:
-                    socketio.emit("fromScanLabel", (False, "invalid"))
+                    socketio.emit("from_scan_submit", (False, "invalid"))
                     return
-            resultsDF, orderNumber, orderID = getParts(packageID)
+            resultsDF, orderNumber, orderID = get_package_items(package_id)
             if selected_printers[0] != "None":
-                createManifestLabel(packageID, resultsDF, SERVER_IP, selected_printers[0])
+                createManifestLabel(package_id, resultsDF, SERVER_IP, selected_printers[0])
 
 
-        elif labelType == "metal_handrail":
+        elif label_type == "metal_handrail":
             print(rawScanData)
             try:
                 piece = json.loads(rawScanData)
@@ -144,7 +142,7 @@ def scanLabel(rawScanData, labelType, selected_printers):
                 if re.search(r"\d+", rawScanData): 
                     pieceID = int(rawScanData)
                 else:
-                    socketio.emit("fromScanLabel", (False, "invalid"))
+                    socketio.emit("from_scan_submit", (False, "invalid"))
                     return
             
             resultsDF = getPieceInfo(pieceID)
@@ -152,13 +150,13 @@ def scanLabel(rawScanData, labelType, selected_printers):
             if selected_printers[0] != "None":
                 createHandrailLabel(resultsDF, SERVER_IP, SERVER_URL, selected_printers[0])
 
-        socketio.emit("fromScanLabel", (True, "success"))
+        socketio.emit("from_scan_submit", (True, "success"))
         return
 
     except Exception as error:
         print(str(error))
         traceback.print_exc()
-        socketio.emit("fromScanLabel", (False, "no_parts_found"), room=session)
+        socketio.emit("from_scan_submit", (False, "no_parts_found"), room=session)
         return
 
 

@@ -1,0 +1,32 @@
+# Production terminal
+# -----------------------------
+schema: ./schema_staging.graphql
+documents: ["**/*.graphql"]
+extensions: 
+  endpoints:
+    default:
+      #url: http://terminal.stairsupplies.com/graphql
+      url: http://staging.terminal.viewrail.com/graphql
+      headers: 
+        # Authorization: "Bearer <YOUR BEARER TOKEN HERE>"
+        #Automation Read Key
+        #x-api-key: Q5dhUlEkJXG5T4ABebLwmHXbjXht5Y
+        
+        #Personal api-key (Mutations)
+        #x-api-key: 9WRs7MOiMTewKAr7AG9EXsgaZsDgRA
+        x-api-key: I7ZAEvcG6dfeiNl3eDIpqqWjSsMMiM
+        #9WRs7MOiMTewKAr7AG9EXsgaZsDgRA
+        #9WRs7MOiMTewKAr7AG9EXsgaZsDgRA
+
+# Docker test
+# -----------------------------
+# schema: ./docker-final-schema.graphql
+# documents: ["**/*.graphql"]
+# extensions: 
+#   endpoints:
+#     default:
+#       url: http://docker-test.loganpgraham.com/graphql
+#       headers: 
+#         #Authorization: "Bearer <YOUR BEARER TOKEN HERE>"
+#         x-api-key: 1mkCv347A3I0DjItgO7gQkzFHW1I0U
+

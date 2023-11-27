@@ -19,7 +19,7 @@
 
 
     <title>{% block title %}{{ title }}{% endblock %}</title>
-    <link rel="icon" href="{{ url_for('static', filename='Retro Mario.ico') }}" type="image/x-icon">
+    <link rel="icon" href="{{ url_for('static', filename='Retro Mario.png') }}" type="image/x-icon">
 </head>
 
 <script>
@@ -54,7 +54,9 @@
         <div class="md-col-6">
             <img src="/static/img/viewrailLogo.png" height="40px" class="d-inline-block align-top mx-3 my-1"
                 alt="VIEWRAIL">
-            <a id="partNumberTitle" class="navbar-brand m-3" style="font-size: 28px">{{ projectTitle }}</a>
+            <a id="partNumberTitle" class="navbar-brand m-3" style="font-size: 28px">
+                <img src="{{ url_for('static', filename='Retro Mario.png') }}" height=50>
+                {{ projectTitle }}</a>
         </div>
         <div class="col"></div>
         <!--Sets the function to call when an order is scanned, the "return false" keeps the webpage from reloading. pretty-->

@@ -1,11 +1,18 @@
 import qrcode
-import os
 import requests
-import PyPDF2
 import fitz
 import socket
 import pandas as pd
 import json
+
+from gql import Client, gql
+from gql.transport.requests import RequestsHTTPTransport
+import aiohttp
+
+import os
+from os import environ as env
+from pathlib import Path
+from dotenv import load_dotenv
  
 LETTER_DICT = {319903 : 'B', 
         319905 : 'B',
@@ -71,6 +78,17 @@ LETTER_DICT = {319903 : 'B',
         280289 : 'X',
         512022 : 'XT',
    }
+
+USE_STAGING = os.environ.get("DEV")
+GQL_API_KEY = os.environ.get("API-KEY")
+
+GQL_URL = env["GRAPHQL_URL"]
+GQL_API_KEY = env["GRAPHQL_API_KEY"]
+DB_HOST = env['DB_URL'],
+DB_DATABASE = env['DB_DATABASE'],
+DB_USER = env['DB_USER'],
+DB_PASSWORD = env['DB_PASSWORD']
+
 
 def make_qr_code(string):
         qr = qrcode.make(string, error_correction=qrcode.constants.ERROR_CORRECT_L)
@@ -204,3 +222,5 @@ def send_request_printall(url, override, quantity):
     print("Response Status: " + str(response.status_code))
 
     return response.status_code
+
+

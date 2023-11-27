@@ -1,0 +1,44 @@
+query get_items_in_package($package_id: ID!){
+        package(id: $package_id){
+            order{
+                order_number
+                id
+            }
+            currentLocation{
+                id
+                name
+                parent{
+                    id
+                    name
+                }
+                qualified_chain
+                distributionCenter{
+                    id
+                    name
+                }
+
+            }
+            contents{
+                id
+                voe_id
+                lineItem{
+                    id
+                    od1Files(type: PDF){
+                        FileName
+                        FileTitle
+                        url
+                    }
+                    finishOption{
+                        id
+                        name
+                    }
+                }
+                product_id
+                product{
+                    id
+                    name
+                    website_image_override_url
+                }
+            }
+        }
+    }

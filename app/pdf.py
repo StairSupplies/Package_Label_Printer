@@ -8,6 +8,7 @@
 
 from fpdf import FPDF
 import os
+from os import Path
 import time
 import datetime
 import qrcode
@@ -21,23 +22,17 @@ from PIL import Image
 import requests
 import random
 import string
+import regex as re
 
-from .terminalDBFunctions import *
-from .terminalFileUploader import *
+from .db_utils import *
 from .utils import *
 
-LABEL_PATH = ''
+##get path to current working directory using path
 
-DYMO_PRINTER = "DYMO LabelWriter 450"
-ZEBRA_PRINTER = "Zebra ZP 500"
+PDF_TEMP_FOLDER = Path.cwd() / "app" / "static" / "download_temp_files"
+PDF_LABELS = Path.cwd() / "app" / "static" / "label_pdf"
 
-PDF_FOLDER = os.getcwd()+"//app//static//download_temp_files//"
-
-#import ahk
-import regex as re
-#from .GoogleChatBot import *
-from .utils import LETTER_DICT
-
+#PDF_TEMP_FOLDER = os.getcwd()+"//app//static//download_temp_files//"
 
 def createManifestLabel(packageID, resultsDF, SERVER_IP, printer):
         NUMBER_OF_ITEMS_PER_LABEL = 10
@@ -144,7 +139,7 @@ def createManifestLabel(packageID, resultsDF, SERVER_IP, printer):
 
 
 #Create a dynamic label with Product Image, QR Code, and Description
-def createMultiStringerLabel(packageID, resultsDF, orderNumber, orderID):
+def createMultiStringerLabel(packageID, resultsDF, orderNumber, order_id):
         
     NUMBER_OF_ITEMS_PER_LABEL = 7
 
@@ -279,15 +274,16 @@ def createMultiStringerLabel(packageID, resultsDF, orderNumber, orderID):
             #remove row from Dataframe after rendering pdf row
             resultsDF = resultsDF.drop(index=index)
         
-        #save the pdf
-        output_file = os.getcwd() + f"/app/static/label_pdf/label{label}.pdf"
+        #save the pdf using os PAth
+        output_file = PDF_LABELS / f"label{label}.pdf"
+       
         pdf.output(output_file)
    
         #print label creation confirmation
         print("New Label Created")
 
 
-def createStringerLabel(packageID, resultsDF, orderNumber, orderID, SERVER_IP, SERVER_URL, printer):
+def createStringerLabel(packageID, resultsDF, orderNumber, order_id, SERVER_IP, SERVER_URL, printer):
     #Set Paths to Images
     logo = os.getcwd()+"/app/static/img/viewrailLogoBW.png"
 
@@ -352,7 +348,7 @@ def createStringerLabel(packageID, resultsDF, orderNumber, orderID, SERVER_IP, S
         download_file(pdfLink_1, "pdf_1.pdf")
         time.sleep(1)
         try:
-            pdfLink_1 = highlight_text_in_pdf(f"{PDF_FOLDER}pdf_1.pdf", f"{PDF_FOLDER}pdf_1_HL.pdf", stringer)
+            pdfLink_1 = highlight_text_in_pdf(f"{PDF_TEMP_FOLDER}pdf_1.pdf", f"{PDF_TEMP_FOLDER}pdf_1_HL.pdf", stringer)
         except:
             pass
     if pdfLink_2 != "":
@@ -360,7 +356,7 @@ def createStringerLabel(packageID, resultsDF, orderNumber, orderID, SERVER_IP, S
 
     if pdfLink_1 != "" and pdfLink_2 != "":
         
-        merged_pdf_file = build_merged_pdfs([SERVER_URL+"pdf_1_HL.pdf", pdfLink_2], stringer, "stringer_QR", orderID)
+        merged_pdf_file = build_merged_pdfs([SERVER_URL+"pdf_1_HL.pdf", pdfLink_2], stringer, "stringer_QR", order_id)
         time.sleep(2)
 
         merged_pdf_url = get_terminal_file_url(packageID, stringer+"_Combined")
@@ -445,11 +441,13 @@ def createStringerLabel(packageID, resultsDF, orderNumber, orderID, SERVER_IP, S
     resultsDF = resultsDF.drop(index=index)
     
     #save the pdf
-    output_file = os.getcwd() + f"/app/static/label_pdf/label.pdf"
+    #output_file = os.getcwd() + f"/app/static/label_pdf/label.pdf"
+    output_file = PDF_LABELS / f"label.pdf"
     pdf.output(output_file)
     #printLabel_PDF(output_file, DYMO_PRINTER)
     
     url = f"http://{SERVER_IP}:5050/static/label_pdf/label.pdf"
+    
     send_request_printall(url, printer, 1)
     #print label creation confirmation
     print("New Stringer QR Label Created")
@@ -589,8 +587,8 @@ def printPDFlabel(resultsDF, search_string, filename, SERVER_URL, printer):
     send_request_printall(url, printer, 1)
 
     
-def build_merged_pdfs(pdf_list, part_name, label_type, orderID):
-    merged_path = f"{PDF_FOLDER}merged.pdf"
+def build_merged_pdfs(pdf_list, part_name, label_type, order_id):
+    merged_path = PDF_TEMP_FOLDER / "merged.pdf"
     headers = {'User-Agent': 'Mozilla/5.0 (X11; Windows; Windows x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36'}
     writer = PdfWriter()
     for pdf in pdf_list:
@@ -603,7 +601,7 @@ def build_merged_pdfs(pdf_list, part_name, label_type, orderID):
     writer.write(outputStream)
     outputStream.close()
 
-    pack_url = upload_file_to_Terminal(label_type, part_name, merged_path, orderID)
+    pack_url = upload_file_to_terminal(label_type, part_name, merged_path, order_id)
 
     return pack_url 
 
@@ -636,14 +634,14 @@ def split_string(string, n):
     return chunks
 
 
-def getPDFLinks(resultsDF):
-    print(resultsDF)
+def getPDFLinks(items_df):
+    print(items_df)
     qr1_path= ""
     qr2_path= ""
 
     #Get the stinger ID
     
-    nameString = str(resultsDF.at[0, "getProduct.name"])
+    nameString = str(items_df.at[0, "getProduct.name"])
     try:
         #Order pattern
         pattern = r"M\d+([A-Z]\d+)"
@@ -662,17 +660,20 @@ def getPDFLinks(resultsDF):
         stringer = ""
     
     #Try to find system blueprint
-    numberOfPDFFiles = len(resultsDF.at[0,'lineItem.od1Files'])
-    print(resultsDF.at[0,'lineItem.od1Files'])
+    numberOfPDFFiles = len(items_df.at[0,'lineItem.od1Files'])
+    print(items_df.at[0,'lineItem.od1Files'])
     print(numberOfPDFFiles)
     qr_path_1, qr_path_2 = "", ""
     pdfLink_1, pdfLink_2 = "", ""
     try:
+        #try to find the flight system blueprint
         for pdf in range(0,numberOfPDFFiles):
             try:
-                pdfLink_1 = resultsDF.at[0,'lineItem.od1Files'][pdf]["url"]
+                pdfLink_1 = items_df.at[0,'lineItem.od1Files'][pdf]["url"]
                 if "CUSTOMER INSTALL" in pdfLink_1:
                     print("Flight System PDF Found: " + pdfLink_1)
+                    
+                    #conver tthe pdf link to a web link
                     qr1 = qrcode.make(pdfLink_1.replace(" ","%20"), error_correction=qrcode.constants.ERROR_CORRECT_L)
                     qr1.save(os.getcwd() + "/app/static/label_pdf/qr_code_pdf_1.png")
                     qr_path_1 = os.getcwd() + r"/app/static/label_pdf/qr_code_1.png"
@@ -680,10 +681,11 @@ def getPDFLinks(resultsDF):
             except Exception as error:
                 print(error)
                 qr_path_1 = ""
-        #Try to find the stringer blueprint
+        
+        #Try to find the stringer's specific blueprint
         for pdf in range(0,numberOfPDFFiles):
             try:
-                pdfLink_2 = resultsDF.at[0,'lineItem.od1Files'][pdf]["url"]
+                pdfLink_2 = items_df.at[0,'lineItem.od1Files'][pdf]["url"]
                 print(pdfLink_2)
                 if stringer in pdfLink_2 and "CUSTOMER INSTALL" not in pdfLink_2:
                     print("Stringer PDF Found: " + pdfLink_2)

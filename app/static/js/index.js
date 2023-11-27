@@ -118,7 +118,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // printer_2_name = stringer_print_printer_select.value
         // printer_3_name = ""
         selected_printers = [printer_1_name, printer_2_name, printer_3_name]
-        socket.emit("scanLabel", rawScanData, currentSelectedLabel, selected_printers)
+        socket.emit("scan_submit", rawScanData, currentSelectedLabel, selected_printers)
         return false
 
     }
@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", function () {
         $('#settingsModal').modal('hide')
     }
 
-    socket.on("fromScanLabel", function (successBool, postJSON) {
+    socket.on("from_scan_submit", function (successBool, postJSON) {
         document.getElementById("scan_label").value = '';
 
         if (successBool == true) {
