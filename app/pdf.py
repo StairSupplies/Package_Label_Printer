@@ -8,13 +8,11 @@
 
 from fpdf import FPDF
 import os
-from os import Path
+from pathlib import Path
 import time
 import datetime
 import qrcode
 import math
-import win32api
-import win32gui
 from pypdf import PdfWriter, PdfReader
 import requests
 import io
@@ -23,6 +21,7 @@ import requests
 import random
 import string
 import regex as re
+import traceback
 
 from .db_utils import *
 from .utils import *
@@ -34,15 +33,15 @@ PDF_LABELS = Path.cwd() / "app" / "static" / "label_pdf"
 
 #PDF_TEMP_FOLDER = os.getcwd()+"//app//static//download_temp_files//"
 
-def createManifestLabel(packageID, resultsDF, SERVER_IP, printer):
+def createManifestLabel(package_id, items_df, SERVER_IP, printer):
         NUMBER_OF_ITEMS_PER_LABEL = 10
 
-        number_of_labels = math.ceil(len(resultsDF) / NUMBER_OF_ITEMS_PER_LABEL)
+        number_of_labels = math.ceil(len(items_df) / NUMBER_OF_ITEMS_PER_LABEL)
         print("Number of labels: " + str(number_of_labels))
         
         for label in range(0, number_of_labels):
             #Make a QR code image
-            qr = qrcode.make('{"package_id": '+ str(packageID) + '}')
+            qr = qrcode.make('{"package_id": '+ str(package_id) + '}')
             
             #save the QR code as a png
             qr.save(os.getcwd() + "/app/static/label_pdf/qr_code.png")
@@ -77,52 +76,56 @@ def createManifestLabel(packageID, resultsDF, SERVER_IP, printer):
             
             pdf.cell(0.05, 1, ln=True)
 
-        
             #write Order Number
-            pdf.text(.2, .9, txt='Package: '+ str(packageID))
+            pdf.text(.2, .9, txt='Package: '+ str(package_id))
             pdf.set_font('Arial', 'B', size=8)
             if number_of_labels > 1:
                 pdf.text(0.05, 7.3, txt='Label ' + str(label+1) + " / " + str(number_of_labels))
             
             #Time stamp
-            #pdf.set_font('Arial', 'B', size=7)
-            #now = datetime.datetime.now()
-            #pdf.cell(.05, .25, txt='Printed: ' + str(now.strftime("%m/%d/%Y %I:%M %p") + '          Label: ' + str(label+1) + " / " + str(number_of_labels)) , ln=True)
+            # pdf.set_font('Arial', 'B', size=6)
+            # now = datetime.datetime.now()
+            # pdf.cell(.05, .25, txt=str(now.strftime("%m/%d/%Y %I:%M")) , ln=True)
 
             row_count = 0
             
-            for index, post in resultsDF.iterrows():
+            for index, post in items_df.iterrows():
                 
                 if row_count >= NUMBER_OF_ITEMS_PER_LABEL:
                     #When label is complete, reset the index for the next label (since current labels rows were removed)
-                    resultsDF = resultsDF.reset_index()
+                    items_df = items_df.reset_index()
                     break
                 
                 #Add a second line if description overflows first line
                 pdf.set_font('Arial','B', size=8)
                 pdf.cell(.2,.15, txt="", ln=True)
-                nameString = str(resultsDF.at[index, "getProduct.name"])
+                nameString = str(items_df.at[index, "product.name"])
                 lines = split_string(nameString, 39)
                 for line in lines: 
                     pdf.cell(.2,.14, txt=line, ln=True)
 
                 pdf.set_font('Arial', size=7)
                 #pdf.cell(.01,.1, txt="  PRODUCT ID       FINISH                         QTY", ln=True)
-                if str(resultsDF.at[index, "lineItemFinishes"]) == "none":
+                if str(items_df.at[index, "finishOption.name"]) == "none":
                     finish_option = ""
                 else:
-                    finish_option = str(resultsDF.at[index, "lineItemFinishes"]) 
-                pdf.cell(1.85,.15, txt="  "+str(resultsDF.at[index, "getProduct.id"]) + "                 "  + finish_option)
+                    finish_option = str(items_df.at[index, "finishOption.name"]) 
+                pdf.cell(1.85,.15, txt="  "+str(items_df.at[index, "product.id"]) + "                 "  + finish_option)
                 pdf.set_font('Arial','B', size=9)
-                quantity = resultsDF['packableItemsPivots'].apply(lambda x: x[0]['quantity'])
+
+
+
+                #quantity = items_df['packableItemsPivots'].apply(lambda x: x[0]['quantity'])
+                quantity = 1
                 print(quantity)
-                pdf.cell(.65,.15, txt=""+str(resultsDF.at[index,'packableItemsPivots'][0]["quantity"]), ln=True)
+                pdf.cell(.65,.15, txt=str(items_df.at[index,'packableItemsPivots'][0]["quantity"]), ln=True)
+                pdf.cell(.65,.15, txt=str(quantity), ln=True)
                 pdf.cell(0.1,0.06)
                 pdf.ln(.05)
 
                 row_count += 1
                 #remove row from Dataframe after rendering pdf row
-                resultsDF = resultsDF.drop(index=index)
+                items_df = items_df.drop(index=index)
             
             #save the pdf
             output_file = os.getcwd() + f"/app/static/label_pdf/label{label}.pdf"
@@ -139,16 +142,16 @@ def createManifestLabel(packageID, resultsDF, SERVER_IP, printer):
 
 
 #Create a dynamic label with Product Image, QR Code, and Description
-def createMultiStringerLabel(packageID, resultsDF, orderNumber, order_id):
+def createMultiStringerLabel(package_id, items_df, orderNumber, order_id):
         
     NUMBER_OF_ITEMS_PER_LABEL = 7
 
-    number_of_labels = math.ceil(len(resultsDF) / NUMBER_OF_ITEMS_PER_LABEL)
+    number_of_labels = math.ceil(len(items_df) / NUMBER_OF_ITEMS_PER_LABEL)
     print("Number of labels: " + str(number_of_labels))
     
     for label in range(0, number_of_labels):
         
-        qr1_path, qr2_path = getPDFLinks(resultsDF)
+        qr1_path, qr2_path = getPDFLinks(items_df)
 
         #Set Paths to Images
         logo = os.getcwd()+"/app/static/img/viewrailLogoBW.png"
@@ -184,7 +187,7 @@ def createMultiStringerLabel(packageID, resultsDF, orderNumber, order_id):
 
     
         #write Order Number
-        pdf.cell(.05, .25, txt='Package: '+ str(packageID), ln=True)
+        pdf.cell(.05, .25, txt='Package: '+ str(package_id), ln=True)
         pdf.cell(.05, .1, txt='', ln=True)
 
         #Write Part Number
@@ -197,17 +200,17 @@ def createMultiStringerLabel(packageID, resultsDF, orderNumber, order_id):
         
         row_count = 0
         
-        for index, post in resultsDF.iterrows():
+        for index, post in items_df.iterrows():
             letter = ""
             if row_count >= NUMBER_OF_ITEMS_PER_LABEL:
                 #When label is complete, reset the index for the next label (since current labels rows were removed)
-                resultsDF = resultsDF.reset_index(drop=True)
+                items_df = items_df.reset_index(drop=True)
                 break
             
             #Add a second line if description overflows first line
             
-            nameString = str(resultsDF.at[index, "getProduct.name"])
-            quantity = str(resultsDF.at[index,'packableItemsPivots'][0]["quantity"])
+            nameString = str(items_df.at[index, "product.name"])
+            quantity = str(items_df.at[index,'packableItemsPivots'][0]["quantity"])
             lines = split_string(nameString, 39)
             stringer = ""
             item_title = "Stringer ID:"
@@ -231,7 +234,7 @@ def createMultiStringerLabel(packageID, resultsDF, orderNumber, order_id):
 
             if stringer == "":
                 item_title = "QTY - Product ID:"
-                stringer = str(resultsDF.at[index, "getProduct.id"])
+                stringer = str(items_df.at[index, "product.id"])
                 #Try to find the Shortcut Letter for Stringer Small Part
                 try:
                     letter = LETTER_DICT[int(stringer)]
@@ -272,7 +275,7 @@ def createMultiStringerLabel(packageID, resultsDF, orderNumber, order_id):
 
             row_count += 1
             #remove row from Dataframe after rendering pdf row
-            resultsDF = resultsDF.drop(index=index)
+            items_df = items_df.drop(index=index)
         
         #save the pdf using os PAth
         output_file = PDF_LABELS / f"label{label}.pdf"
@@ -283,7 +286,7 @@ def createMultiStringerLabel(packageID, resultsDF, orderNumber, order_id):
         print("New Label Created")
 
 
-def createStringerLabel(packageID, resultsDF, orderNumber, order_id, SERVER_IP, SERVER_URL, printer):
+def createStringerLabel(package_id, items_df, orderNumber, order_id, SERVER_IP, SERVER_URL, printer):
     #Set Paths to Images
     logo = os.getcwd()+"/app/static/img/viewrailLogoBW.png"
 
@@ -305,14 +308,14 @@ def createStringerLabel(packageID, resultsDF, orderNumber, order_id, SERVER_IP, 
     pdf.line(.15,.62,4,.62)
     #create Indents to postion text "Arial" "Bold" Font Size: 10 (add "border=True" argument to see cell borders)
     pdf.set_font('Arial', 'B', size=10)
-    
-    for index, post in resultsDF.iterrows():
+    print(items_df)
+    for index, stringer in items_df.iterrows():
         #Add a second line if description overflows first line
-        stringer = ""
-        nameString = str(resultsDF.at[index, "getProduct.name"])
-        productID = str(resultsDF.at[index, "getProduct.id"])
-        finishOption = str(resultsDF.at[index, "lineItemFinishes"])
-        quantity = str(resultsDF.at[index,'packableItemsPivots'][0]["quantity"])
+        nameString = stringer["product.name"]
+        productID = str(stringer["product.id"])
+        finishOption = str(stringer["finishOption.name"])
+        #quantity = str(items_df.at[index,'packableItemsPivots'][0]["quantity"])
+        quantity = 1
         part_title = "Stringer ID:"
         
         try:
@@ -334,7 +337,7 @@ def createStringerLabel(packageID, resultsDF, orderNumber, order_id, SERVER_IP, 
     
     if stringer == "":
         product_label = True
-        stringer = str(resultsDF.at[index, "getProduct.id"])
+        stringer = str(items_df.at[index, "product.id"])
         part_title = "Product ID:"
     else:
         product_label = False
@@ -343,12 +346,12 @@ def createStringerLabel(packageID, resultsDF, orderNumber, order_id, SERVER_IP, 
         
     #Get PDF Link Files
     
-    qr1_path, qr2_path, pdfLink_1, pdfLink_2 = getPDFLinks(resultsDF)
+    qr1_path, qr2_path, pdfLink_1, pdfLink_2 = getPDFLinks(items_df)
     if pdfLink_1 != "":
         download_file(pdfLink_1, "pdf_1.pdf")
         time.sleep(1)
         try:
-            pdfLink_1 = highlight_text_in_pdf(f"{PDF_TEMP_FOLDER}pdf_1.pdf", f"{PDF_TEMP_FOLDER}pdf_1_HL.pdf", stringer)
+            pdfLink_1 = highlight_text_in_pdf(PDF_TEMP_FOLDER / "pdf_1.pdf", PDF_TEMP_FOLDER / "pdf_1_HL.pdf", stringer)
         except:
             pass
     if pdfLink_2 != "":
@@ -357,9 +360,9 @@ def createStringerLabel(packageID, resultsDF, orderNumber, order_id, SERVER_IP, 
     if pdfLink_1 != "" and pdfLink_2 != "":
         
         merged_pdf_file = build_merged_pdfs([SERVER_URL+"pdf_1_HL.pdf", pdfLink_2], stringer, "stringer_QR", order_id)
-        time.sleep(2)
-
-        merged_pdf_url = get_terminal_file_url(packageID, stringer+"_Combined")
+        time.sleep(5)
+    
+        merged_pdf_url = get_terminal_file_url(package_id, stringer+"_Combined")
         print(merged_pdf_url)
         qr1_path = make_qr_code(merged_pdf_url)
         qr2_path = ""
@@ -438,7 +441,7 @@ def createStringerLabel(packageID, resultsDF, orderNumber, order_id, SERVER_IP, 
     #pdf.text(6, 2.17, txt='Printed: ' + str(now.strftime("%m/%d/%Y %I:%M %p")))
         
     #remove row from Dataframe after rendering pdf row
-    resultsDF = resultsDF.drop(index=index)
+    items_df = items_df.drop(index=index)
     
     #save the pdf
     #output_file = os.getcwd() + f"/app/static/label_pdf/label.pdf"
@@ -453,10 +456,10 @@ def createStringerLabel(packageID, resultsDF, orderNumber, order_id, SERVER_IP, 
     print("New Stringer QR Label Created")
     return True
 
-def createHandrailLabel(resultsDF, SERVER_IP, SERVER_URL, printer):
+def createHandrailLabel(items_df, SERVER_IP, SERVER_URL, printer):
     print("Here's the good stuff")
-    print(resultsDF)
-    # print(resultsDF.columns)
+    print(items_df)
+    # print(items_df.columns)
     #Set Paths to Images
     logo = os.getcwd()+"/app/static/img/viewrailLogoBW.png"
 
@@ -479,7 +482,7 @@ def createHandrailLabel(resultsDF, SERVER_IP, SERVER_URL, printer):
     #create Indents to postion text "Arial" "Bold" Font Size: 10 (add "border=True" argument to see cell borders)
     pdf.set_font('Arial', 'B', size=10)
     
-    for index, post in resultsDF.iterrows():
+    for index, post in items_df.iterrows():
         #Add a second line if description overflows first line
         stringer = ""
 
@@ -489,34 +492,34 @@ def createHandrailLabel(resultsDF, SERVER_IP, SERVER_URL, printer):
         pdf.text(1.35, 0.95, txt=handrail_order_number)
         
         pdf.set_font('Arial', 'B', size=18)
-        pdf.text(2.05, 0.95, txt=resultsDF.at[0,"order.order_number"])
+        pdf.text(2.05, 0.95, txt=items_df.at[0,"order.order_number"])
         
         #handrail_title = "Handrail ID:" 
         #pdf.set_font('Arial', 'B', size=28)
         #pdf.text(0.1, 1.8, txt=handrail_title)
         
         pdf.set_font('Arial', 'B', size=64)
-        #pdf.text(1.25, 1.8, txt=resultsDF.at[0,"piece_number"])
+        #pdf.text(1.25, 1.8, txt=items_df.at[0,"piece_number"])
 
         pdf.set_xy(1.25, 1.4)  # Position of the text
-        pdf.cell(1.8, .2, f"{resultsDF.at[0,'piece_number']}", align="C", border=False)
+        pdf.cell(1.8, .2, f"{items_df.at[0,'piece_number']}", align="C", border=False)
 
-        url = resultsDF.at[0,"product.website_image_override_url"]
+        url = items_df.at[0,"product.website_image_override_url"]
         profile_image_filename = download_file(url, "handrail_profile.jpg")
         pdf.image(profile_image_filename, x=5, y=.2, w = 1.8)
 
 
         
-        profile_name = resultsDF.at[0,"lineItem.handrail_style"].replace("_", " ").title()
+        profile_name = items_df.at[0,"lineItem.handrail_style"].replace("_", " ").title()
         pdf.set_font('Arial', size=12)
         #pdf.text(5.2, 2.1, txt=profile_name)
         pdf.set_xy(5.2, 2)  # Position of the text
         pdf.cell(1.5, .2, profile_name, align="C", border=False)
         pdf.set_xy(5.2, 0.3) # Position of the text
-        pdf.cell(1.5, .2, f"{resultsDF.at[0,'product.handrail_length']}ft", align='C', border=False)
+        pdf.cell(1.5, .2, f"{items_df.at[0,'product.handrail_length']}ft", align='C', border=False)
 
         #remove row from Dataframe after rendering pdf row
-        resultsDF = resultsDF.drop(index=index)
+        items_df = items_df.drop(index=index)
         
         #save the pdf
         alphanumeric = generate_random_string(4) 
@@ -532,14 +535,14 @@ def createHandrailLabel(resultsDF, SERVER_IP, SERVER_URL, printer):
     return True
 
 
-def printPDFlabel(resultsDF, search_string, filename, SERVER_URL, printer):
-    print(resultsDF)
+def printPDFlabel(items_df, search_string, filename, SERVER_URL, printer):
+    print(items_df)
     qr1_path= ""
     qr2_path= ""
 
     #Get the stinger ID
     
-    nameString = str(resultsDF.at[0, "getProduct.name"])
+    nameString = str(items_df.at[0, "product.name"])
     try:
         #Order pattern
         pattern = r"M\d+([A-Z]\d+)"
@@ -564,13 +567,13 @@ def printPDFlabel(resultsDF, search_string, filename, SERVER_URL, printer):
     else:
         found_pdfLink = ""
         #Try to find system blueprint
-        numberOfPDFFiles = len(resultsDF.at[0,'lineItem.od1Files'])
+        numberOfPDFFiles = len(items_df.at[0,'lineItem.od1Files'])
         print(numberOfPDFFiles)
         try:
             
             for pdf in range(0,numberOfPDFFiles):
                 try:
-                    pdfLink = resultsDF.at[0,'lineItem.od1Files'][pdf]["url"]
+                    pdfLink = items_df.at[0,'lineItem.od1Files'][pdf]["url"]
                     
                     if search_string in pdfLink:
                         found_pdfLink = pdfLink
@@ -588,22 +591,40 @@ def printPDFlabel(resultsDF, search_string, filename, SERVER_URL, printer):
 
     
 def build_merged_pdfs(pdf_list, part_name, label_type, order_id):
-    merged_path = PDF_TEMP_FOLDER / "merged.pdf"
-    headers = {'User-Agent': 'Mozilla/5.0 (X11; Windows; Windows x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36'}
+    merged_pdf = io.BytesIO()
     writer = PdfWriter()
-    for pdf in pdf_list:
-        response = requests.get(url=pdf, headers=headers, timeout=120)
-        mem_pdf = io.BytesIO(response.content)
-        pdf_open = PdfReader(mem_pdf)
-        writer.append_pages_from_reader(pdf_open)
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (X11; Windows; Windows x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36'
+    }
 
-    outputStream = open(merged_path,"wb")
-    writer.write(outputStream)
-    outputStream.close()
+    for pdf_url in pdf_list:
+        try:
+            response = requests.get(url=pdf_url, headers=headers, timeout=120)
+            response.raise_for_status()  # Raise an error for bad status codes
+            mem_pdf = io.BytesIO(response.content)
+            pdf_open = PdfReader(mem_pdf)
+            writer.append_pages_from_reader(pdf_open)
+        except requests.RequestException as e:
+            print(f"Error fetching PDF from {pdf_url}: {e}")
+            return None
+        except Exception as e:
+            print(f"Error processing PDF from {pdf_url}: {e}")
+            return None
 
-    pack_url = upload_file_to_terminal(label_type, part_name, merged_path, order_id)
-
-    return pack_url 
+    try:
+        writer.write(merged_pdf)
+        merged_pdf.seek(0)  # Rewind to beginning of file before uploading
+        #save the file to a local directory
+        with open(PDF_TEMP_FOLDER / "merged.pdf", "wb") as f:
+            f.write(merged_pdf.read())
+        merged_pdf_path = PDF_TEMP_FOLDER / "merged.pdf"
+        
+        pack_url = upload_file_to_terminal(label_type, part_name, merged_pdf_path, order_id)
+        return pack_url
+    except Exception as e:
+        traceback.print_exc()
+        print(f"Error merging/writing PDFs: {e}")
+        return None
 
 
 def split_string(string, n):
@@ -641,7 +662,7 @@ def getPDFLinks(items_df):
 
     #Get the stinger ID
     
-    nameString = str(items_df.at[0, "getProduct.name"])
+    nameString = str(items_df.at[0, "product.name"])
     try:
         #Order pattern
         pattern = r"M\d+([A-Z]\d+)"

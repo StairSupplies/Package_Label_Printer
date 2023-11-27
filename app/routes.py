@@ -100,20 +100,19 @@ def scan_submit(rawScanData, label_type, selected_printers):
                 else:
                     socketio.emit("from_scan_submit", (False, "invalid"))
                     return 
-            items_df, orderNumber, orderID = get_package_items(package_id)
+            items_df, order_number, order_id = get_package_items(package_id)
             
             #Print a label if there is only one item in the package Stringer = 1 Item
             if len(items_df) == 1:
                 
                 if selected_printers[0] != "None":
-                    createStringerLabel(package_id, resultsDF, orderNumber, orderID, SERVER_IP, SERVER_URL, selected_printers[0])
+                    createStringerLabel(package_id, items_df, order_number, order_id, SERVER_IP, SERVER_URL, selected_printers[0])
                 if selected_printers[1] != "None":
                     printPDFlabel(resultsDF, "CUSTOMER INSTALL", "pdf_1_HL.pdf", SERVER_URL, selected_printers[1])
             else:
-                createMultiStringerLabel(package_id, resultsDF, orderNumber, orderID, SERVER_URL, selected_printers)
+                createMultiStringerLabel(package_id, items_df, order_number, order_id, SERVER_URL, selected_printers)
                 printPDFlabel(resultsDF, "CUSTOMER INSTALL", "pdf_1_HL.pdf", SERVER_URL, selected_printers[1])
         
-
         elif label_type == "manifest":
             try:
                 package = json.loads(rawScanData)

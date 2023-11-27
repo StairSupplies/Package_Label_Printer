@@ -28,10 +28,7 @@ query get_items_in_package($package_id: ID!){
                         FileTitle
                         url
                     }
-                    finishOption{
-                        id
-                        name
-                    }
+                    
                 }
                 product_id
                 product{
@@ -39,6 +36,10 @@ query get_items_in_package($package_id: ID!){
                     name
                     website_image_override_url
                 }
+                finishOption{
+                        id
+                        name
+                    }
             }
         }
     }

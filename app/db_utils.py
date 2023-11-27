@@ -33,7 +33,6 @@ DB_PASSWORD = env['DB_PASSWORD']
 # if it returns null, then call checkForPackedSmallParts2
 def get_package_items(package_id):
 
-    url, headers = dbconfig()
     result = query_GQL("get_package_items", {"package_id": int(package_id)})
     
     
@@ -111,45 +110,22 @@ def getPieceInfo(pieceID):
     
     return resultsDF
 
-def get_terminal_file_url(package, filename):
-    query=f"""query getTerminalFile{{
-            package(id: {package}){{
-                order{{
-                    id
-                    order_number
-                    files{{
-                        name
-                        download_permalink
-                        viewable_permalink
-                    }}
-                }}
-            }}
-    }}
-    """
-    url, headers = dbconfig()
-    request = requests.post(url=url, json={'query': query}, headers=headers)
+def get_terminal_file_url(package_id, filename):
+
+    result = query_GQL("get_terminal_file", {"package_id": int(package_id)})
     
+    files = result['package']['order']["files"]
+    print(files)
+    url = ""
+    for file in files:
+        print(file["name"])
+        if filename in file["name"]:
+            url = file["viewable_permalink"]
     
-    if request.status_code == 200:
-        # Return only the dictionary contents at the orderlineitems level of the query results.
-        request = request.json()
-        
-        #get the data from query
-        
-        #parentLevelPackageItems = request['data']['package']['packableItems']
-     
-        files = request['data']['package']['order']["files"]
-        print(files)
-        url = ""
-        for file in files:
-            print(file["name"])
-            if filename in file["name"]:
-                url = file["viewable_permalink"]
-        
-        if url == "":
-            raise Exception
-        else:
-            return url
+    if url == "":
+        return ""
+    else:
+        return url
         
 def upload_file_to_terminal(pdf_type, part, pdf_path, order_id):
     uploadpath = pdf_path
@@ -167,8 +143,8 @@ def upload_file_to_terminal(pdf_type, part, pdf_path, order_id):
         # This is an example of uploading a file to a Line Item using a Line Item id
         #params = {"fileobject": f,"idtype":"LINE_ITEM","id":11878375}
         result = mutation_GQL("upload_file_to_terminal", params)
-        result = client.execute(query, variable_values=params, upload_files=True)
-
+        #result = client.execute(query, variable_values=params, upload_files=True)
+    print(result)
     return result['uploadFiles'][0]['url']
 
 
@@ -180,14 +156,15 @@ def dbconfig():
     client = Client(transport=transport, fetch_schema_from_transport=True)
     return client
 
-def query_GQL(scope = str, filename=str, params=dict):
-    query = gql((Path.cwd() / 'gql' / scope / f"{filename}.graphql").read_text())
+def query_GQL(filename=str, params=dict):
+    query = gql((Path.cwd() / 'app' / 'gql' / f"{filename}.graphql").read_text())
     client = dbconfig()
     result = client.execute(query, variable_values=params, timeout=60)
     return result
 
-def mutation_GQL(scope = str, filename=str, params=dict):
-    query = gql((Path.cwd() / "gql" / scope / f"{filename}.graphql").read_text())
+def mutation_GQL(filename=str, params=dict):
+    query = gql((Path.cwd() / 'app' / "gql" / f"{filename}.graphql").read_text())
+    print(query)
     client = dbconfig()
     result = client.execute(query, variable_values=params)
     return result

@@ -1,0 +1,13 @@
+query get_terminal_file($package_id: ID!){
+    package(id: $package_id){
+        order{
+            id
+            order_number
+            files{
+                name
+                download_permalink
+                viewable_permalink
+            }
+        }
+    }
+}
