@@ -1,0 +1,24 @@
+query get_handrail_from_pid($pid: ID!) {
+  productionItemByScan(scan: $pid) {
+    id
+    piece_number
+    order {
+      order_number
+    }
+    lineItem {
+      id
+      name
+      handrail_style
+    }
+    finishOption {
+      name
+    }
+    material {
+      name
+    }
+    product {
+      handrail_length
+      website_image_override_url
+    }
+  }
+}

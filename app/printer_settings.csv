@@ -1,7 +1,7 @@
 hostname,printer_1_name,printer_1_type,printer_2_name,printer_2_type,printer_3_name,printer_3_type
 192.168.60.41,adm1756-dymo,packing,adm1756-letter,letter,name_other,autobag
 192.168.60.101,adm1756-dymo,packing,Letter,letter,,none
-192.168.60.141,adm1756-dymo,post,,none,,none
+192.168.60.141,shipping-zebra-1,large_address,,none,,none
 127.0.0.1,testadf,packing,,none,,none
 192.168.60.94,adm1259-zebra,post,,none,,none
 192.168.60.84,adm267-dymo,packing,adm267-document,letter,,none
@@ -11,4 +11,4 @@ hostname,printer_1_name,printer_1_type,printer_2_name,printer_2_type,printer_3_n
 192.168.60.86,printer_1,none,printer_2,none,printer_3,none
 192.168.60.76,adm1973-dymo,packing,printer_2,none,printer_3,none
 10.10.0.77,printer_1,none,printer_2,none,printer_3,none
-192.168.12.227,adm1331-dymo,post,printer_2,none,printer_3,none
+192.168.12.227,adm1331-dymo,packing,printer_2,none,printer_3,none

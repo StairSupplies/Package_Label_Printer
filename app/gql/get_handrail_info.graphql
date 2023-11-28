@@ -1,0 +1,23 @@
+query get_handrail_from_pid($oli_piece_id: ID!) {
+  oliPiece(id: $oli_piece_id) {
+    piece_number
+    order {
+      order_number
+    }
+    lineItem {
+      id
+      name
+      handrail_style
+    }
+    finishOption {
+      name
+    }
+    product {
+      handrail_length
+      website_image_override_url
+      material {
+        name
+      }
+    }
+  }
+}

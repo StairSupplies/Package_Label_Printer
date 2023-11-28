@@ -22,6 +22,7 @@ import random
 import string
 import regex as re
 import traceback
+import base64
 
 from .db_utils import *
 from .utils import *
@@ -142,7 +143,7 @@ def createManifestLabel(package_id, items_df, SERVER_IP, printer):
 
 
 #Create a dynamic label with Product Image, QR Code, and Description
-def createMultiStringerLabel(package_id, items_df, orderNumber, order_id):
+def create_multiple_stringer_label(package_id, items_df, orderNumber, order_id):
         
     NUMBER_OF_ITEMS_PER_LABEL = 7
 
@@ -285,8 +286,7 @@ def createMultiStringerLabel(package_id, items_df, orderNumber, order_id):
         #print label creation confirmation
         print("New Label Created")
 
-
-def createStringerLabel(package_id, items_df, orderNumber, order_id, SERVER_IP, SERVER_URL, printer):
+def create_stringer_label(package_id, items_df, orderNumber, order_id, SERVER_IP, SERVER_URL, printer):
     #Set Paths to Images
     logo = os.getcwd()+"/app/static/img/viewrailLogoBW.png"
 
@@ -456,86 +456,86 @@ def createStringerLabel(package_id, items_df, orderNumber, order_id, SERVER_IP, 
     print("New Stringer QR Label Created")
     return True
 
-def createHandrailLabel(items_df, SERVER_IP, SERVER_URL, printer):
-    print("Here's the good stuff")
-    print(items_df)
-    # print(items_df.columns)
-    #Set Paths to Images
-    logo = os.getcwd()+"/app/static/img/viewrailLogoBW.png"
+def create_handrail_label(handrail_df, SERVER_IP, SERVER_URL, printer):
+    try:
+        print("Here's the good stuff")
+        print(handrail_df)
+        # print(items_df.columns)
+        #Set Paths to Images
+        logo = os.getcwd()+"/app/static/img/viewrailLogoBW.png"
 
-    #Read "FPDF2" library documentation for more info
-    #Set up PDF page (dimensions in inches)
-    #Set label Size
-    pdf = FPDF(unit='in', format=[7.4,2.25])
-    #create a page
-    pdf.add_page()
-    #set margins
-    pdf.set_margins(left=.05, top=.01, right=.1)
-    pdf.set_auto_page_break(auto=False)
-    
-    #add images, resize, and postion
-    pdf.image(logo, x=1.6, y=.2, w = 1)
-    # #make new line
-    
-    pdf.set_line_width(.01)
-    pdf.line(.15,.62,4,.62)
-    #create Indents to postion text "Arial" "Bold" Font Size: 10 (add "border=True" argument to see cell borders)
-    pdf.set_font('Arial', 'B', size=10)
-    
-    for index, post in items_df.iterrows():
-        #Add a second line if description overflows first line
-        stringer = ""
-
-
-        handrail_order_number = "Order:" 
-        pdf.set_font('Arial', 'B', size=14)
-        pdf.text(1.35, 0.95, txt=handrail_order_number)
+        #Read "FPDF2" library documentation for more info
+        #Set up PDF page (dimensions in inches)
+        #Set label Size
+        pdf = FPDF(unit='in', format=[7.4,2.25])
+        #create a page
+        pdf.add_page()
+        #set margins
+        pdf.set_margins(left=.05, top=.01, right=.1)
+        pdf.set_auto_page_break(auto=False)
         
-        pdf.set_font('Arial', 'B', size=18)
-        pdf.text(2.05, 0.95, txt=items_df.at[0,"order.order_number"])
+        #add images, resize, and postion
+        pdf.image(logo, x=1.6, y=.2, w = 1)
+        # #make new line
         
-        #handrail_title = "Handrail ID:" 
-        #pdf.set_font('Arial', 'B', size=28)
-        #pdf.text(0.1, 1.8, txt=handrail_title)
+        pdf.set_line_width(.01)
+        pdf.line(.15,.62,4,.62)
+        #create Indents to postion text "Arial" "Bold" Font Size: 10 (add "border=True" argument to see cell borders)
+        pdf.set_font('Arial', 'B', size=10)
         
-        pdf.set_font('Arial', 'B', size=64)
-        #pdf.text(1.25, 1.8, txt=items_df.at[0,"piece_number"])
+        for index, handrail in handrail_df.iterrows():
+            #Add a second line if description overflows first line
+            stringer = ""
 
-        pdf.set_xy(1.25, 1.4)  # Position of the text
-        pdf.cell(1.8, .2, f"{items_df.at[0,'piece_number']}", align="C", border=False)
+            handrail_order_number = "Order:" 
+            pdf.set_font('Arial', 'B', size=14)
+            pdf.text(1.35, 0.95, txt=handrail_order_number)
+            
+            pdf.set_font('Arial', 'B', size=18)
+            pdf.text(2.05, 0.95, txt=handrail["order.order_number"])
+            
+            #handrail_title = "Handrail ID:" 
+            #pdf.set_font('Arial', 'B', size=28)
+            #pdf.text(0.1, 1.8, txt=handrail_title)
+            
+            pdf.set_font('Arial', 'B', size=64)
+            #pdf.text(1.25, 1.8, txt=items_df.at[0,"piece_number"])
 
-        url = items_df.at[0,"product.website_image_override_url"]
-        profile_image_filename = download_file(url, "handrail_profile.jpg")
-        pdf.image(profile_image_filename, x=5, y=.2, w = 1.8)
+            pdf.set_xy(1.25, 1.4)  # Position of the text
+            pdf.cell(1.8, .2, f"{handrail['piece_number']}", align="C", border=False)
 
+            url = handrail["product.website_image_override_url"]
+            profile_image_filename = download_file(url, "handrail_profile.jpg")
+            pdf.image(profile_image_filename, x=5, y=.2, w = 1.8)
 
-        
-        profile_name = items_df.at[0,"lineItem.handrail_style"].replace("_", " ").title()
-        pdf.set_font('Arial', size=12)
-        #pdf.text(5.2, 2.1, txt=profile_name)
-        pdf.set_xy(5.2, 2)  # Position of the text
-        pdf.cell(1.5, .2, profile_name, align="C", border=False)
-        pdf.set_xy(5.2, 0.3) # Position of the text
-        pdf.cell(1.5, .2, f"{items_df.at[0,'product.handrail_length']}ft", align='C', border=False)
+            profile_name = handrail["lineItem.handrail_style"].replace("_", " ").title()
+            pdf.set_font('Arial', size=12)
+            #pdf.text(5.2, 2.1, txt=profile_name)
+            pdf.set_xy(5.2, 2)  # Position of the text
+            pdf.cell(1.5, .2, profile_name, align="C", border=False)
+            pdf.set_xy(5.2, 0.3) # Position of the text
+            pdf.cell(1.5, .2, f"{handrail['product.handrail_length']}ft", align='C', border=False)
 
-        #remove row from Dataframe after rendering pdf row
-        items_df = items_df.drop(index=index)
-        
-        #save the pdf
-        alphanumeric = generate_random_string(4) 
-        output_file = os.getcwd() + f"/app/static/label_pdf/handrail_"+str(alphanumeric)+".pdf"
-        
-        pdf.output(output_file)
-        #printLabel_PDF(output_file, DYMO_PRINTER)
-        
-        url = f"http://{SERVER_IP}:5050/static/label_pdf/handrail_"+str(alphanumeric)+".pdf"
-        send_request_printall(url, printer, 1)
-        #print label creation confirmation
-        print("New Stringer QR Label Created")
-    return True
+            #remove row from Dataframe after rendering pdf row
+            items_df = handrail_df.drop(index=index)
+            
+            #save the pdf
+            alphanumeric = generate_random_string(4) 
+            output_file = os.getcwd() + f"/app/static/label_pdf/handrail_"+str(alphanumeric)+".pdf"
+            
+            pdf.output(output_file)
+            #printLabel_PDF(output_file, DYMO_PRINTER)
+            print("File Saved")
+            url = f"http://{SERVER_IP}:5050/static/label_pdf/handrail_"+str(alphanumeric)+".pdf"
+            send_request_printall(url, printer, 1)
+            #print label creation confirmation
+            print("New Stringer QR Label Created")
+        return True
+    except Exception as e:
+        traceback.print_exc()
+        return False
 
-
-def printPDFlabel(items_df, search_string, filename, SERVER_URL, printer):
+def print_pdf_label(items_df, search_string, filename, SERVER_URL, printer):
     print(items_df)
     qr1_path= ""
     qr2_path= ""
@@ -589,7 +589,6 @@ def printPDFlabel(items_df, search_string, filename, SERVER_URL, printer):
     print(url)
     send_request_printall(url, printer, 1)
 
-    
 def build_merged_pdfs(pdf_list, part_name, label_type, order_id):
     merged_pdf = io.BytesIO()
     writer = PdfWriter()
@@ -615,8 +614,8 @@ def build_merged_pdfs(pdf_list, part_name, label_type, order_id):
         writer.write(merged_pdf)
         merged_pdf.seek(0)  # Rewind to beginning of file before uploading
         #save the file to a local directory
-        with open(PDF_TEMP_FOLDER / "merged.pdf", "wb") as f:
-            f.write(merged_pdf.read())
+        # with open(PDF_TEMP_FOLDER / "merged.pdf", "wb") as f:
+        #     f.write(merged_pdf.read())
         merged_pdf_path = PDF_TEMP_FOLDER / "merged.pdf"
         
         pack_url = upload_file_to_terminal(label_type, part_name, merged_pdf_path, order_id)
@@ -625,7 +624,6 @@ def build_merged_pdfs(pdf_list, part_name, label_type, order_id):
         traceback.print_exc()
         print(f"Error merging/writing PDFs: {e}")
         return None
-
 
 def split_string(string, n):
     """Split a string into chunks of length n, while keeping words together."""
@@ -653,7 +651,6 @@ def split_string(string, n):
     chunks.append(current_chunk.strip())
     
     return chunks
-
 
 def getPDFLinks(items_df):
     print(items_df)
@@ -724,7 +721,6 @@ def getPDFLinks(items_df):
     
     print(qr1_path, qr2_path)
     return qr_path_1, qr_path_2, pdfLink_1, pdfLink_2
-
 
 def crop_pdf_image(image_path, left, top, right, bottom):
      # Open the image using PIL

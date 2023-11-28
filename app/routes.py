@@ -57,7 +57,7 @@ def custom_preset(preset=str):
     if preset == None:
         preset = ""
     print(json_data)
-    title = "Customized Package Labels"
+    title = "Custom Package Labels"
     return render_template("index.html", title=title, projectTitle=title, autoSelect=preset, json_data=json_data)
 
 
@@ -71,7 +71,7 @@ def bulk():
         create_settings_entry(hostname)
         json_data = get_printer_settings(hostname)
 
-    title = "Bulk Label Printing"
+    title = "Express Package Labels"
 
     return render_template("bulk labels.html", title=title, projectTitle=title, autoSelect="", json_data=json_data)
 
@@ -83,9 +83,9 @@ def bulk():
 def scan_submit(rawScanData, label_type, selected_printers):
     session = request.sid
     hostname = request.remote_addr
+    
     #Delete old label files
-    remove_temp_files()
-    print(label_type)
+    #remove_temp_files()
 
     try:
         if label_type == "stringer":
@@ -106,12 +106,12 @@ def scan_submit(rawScanData, label_type, selected_printers):
             if len(items_df) == 1:
                 
                 if selected_printers[0] != "None":
-                    createStringerLabel(package_id, items_df, order_number, order_id, SERVER_IP, SERVER_URL, selected_printers[0])
+                    create_stringer_label(package_id, items_df, order_number, order_id, SERVER_IP, SERVER_URL, selected_printers[0])
                 if selected_printers[1] != "None":
-                    printPDFlabel(resultsDF, "CUSTOMER INSTALL", "pdf_1_HL.pdf", SERVER_URL, selected_printers[1])
+                    print_pdf_label(resultsDF, "CUSTOMER INSTALL", "pdf_1_HL.pdf", SERVER_URL, selected_printers[1])
             else:
-                createMultiStringerLabel(package_id, items_df, order_number, order_id, SERVER_URL, selected_printers)
-                printPDFlabel(resultsDF, "CUSTOMER INSTALL", "pdf_1_HL.pdf", SERVER_URL, selected_printers[1])
+                create_multiple_stringer_label(package_id, items_df, order_number, order_id, SERVER_URL, selected_printers)
+                print_pdf_label(resultsDF, "CUSTOMER INSTALL", "pdf_1_HL.pdf", SERVER_URL, selected_printers[1])
         
         elif label_type == "manifest":
             try:
@@ -133,22 +133,22 @@ def scan_submit(rawScanData, label_type, selected_printers):
         elif label_type == "metal_handrail":
             print(rawScanData)
             try:
-                piece = json.loads(rawScanData)
-                pieceID = int(piece["i"])
+                scan_json = json.loads(rawScanData)
+                oli_piece_id = int(scan_json["i"])
             #if not, try a raw scan input
             except:
                 print("Raw Order Input Detected")
                 if re.search(r"\d+", rawScanData): 
-                    pieceID = int(rawScanData)
+                    oli_piece_id = int(rawScanData)
                 else:
                     socketio.emit("from_scan_submit", (False, "invalid"))
                     return
-            
-            resultsDF = getPieceInfo(pieceID)
-
+            print("Making Label")
+            handrail_df = get_handrail_info(oli_piece_id)
+            print(selected_printers[0])
             if selected_printers[0] != "None":
-                createHandrailLabel(resultsDF, SERVER_IP, SERVER_URL, selected_printers[0])
-
+                complete = create_handrail_label(handrail_df, SERVER_IP, SERVER_URL, selected_printers[0])
+                print(complete)
         socketio.emit("from_scan_submit", (True, "success"))
         return
 

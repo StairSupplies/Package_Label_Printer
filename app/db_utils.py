@@ -4,7 +4,7 @@ import configparser
 import os
 import pandas as pd
 import traceback
-
+import base64
 
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
@@ -34,9 +34,7 @@ DB_PASSWORD = env['DB_PASSWORD']
 def get_package_items(package_id):
 
     result = query_GQL("get_package_items", {"package_id": int(package_id)})
-    
-    
-    
+    print(result)
     #Check the parent Package and get items list
     try:
         package_items_df = pd.json_normalize(result['package']['contents'])
@@ -62,53 +60,23 @@ def get_package_items(package_id):
 
     return package_items_df, order_number, order_id
 
-def getPieceInfo(pieceID):
-    query = f'''
-    query get_handrail_from_pid {{
-    productionItemByScan(scan: "{pieceID}") {{
-        id,
-        piece_number,
-        order{{
-        order_number
-        }},
-        lineItem{{
-        id,
-        name,
-        handrail_style
-        }},
-        finishOption{{
-        name
-        }},
-        material{{
-        name
-        }},
-        product{{
-        handrail_length
-        website_image_override_url
-        }}
-    }}
-    }}
-    '''
-
-    url, headers = dbconfig()
-    request = requests.post(url=url, json={'query': query}, headers=headers)
-    
-    print(str(request.status_code))
-    
-    if request.status_code == 200:
-        # Return only the dictionary contents at the orderlineitems level of the query results.
-        request = request.json()
-        print(request)
-        #get the data from query
+def get_handrail_info(oli_piece_id):
+    result = query_GQL("get_handrail_info", {"oli_piece_id": int(oli_piece_id)})
+     #try to check for a oli_piece_id
+    try:
+        handrail_df = pd.json_normalize(result['oliPiece'])
+        handrail_df = handrail_df.fillna("none")
+    except Exception as error:
+        #try to check for a production item id (remove later)
         try:
-            resultsDF = pd.json_normalize(request['data']['productionItemByScan'])
-            resultsDF = resultsDF.fillna("none")
+            result = query_GQL("get_handrail_info_old", {"pid": int(oli_piece_id)})
+            handrail_df = pd.json_normalize(result['oliPiece'])
+            handrail_df = handrail_df.fillna("none")
         except Exception as error:
-            print(error)
-
-        print(resultsDF)
+            traceback.print_exc()
+            return False
     
-    return resultsDF
+    return handrail_df
 
 def get_terminal_file_url(package_id, filename):
 
@@ -127,23 +95,37 @@ def get_terminal_file_url(package_id, filename):
     else:
         return url
         
-def upload_file_to_terminal(pdf_type, part, pdf_path, order_id):
-    uploadpath = pdf_path
-    # filename = uploadpath.split('/')[-1]
+# def upload_file_to_terminal(pdf_type, part, pdf_path, order_id):
+#     uploadpath = pdf_path
+#     # filename = uploadpath.split('/')[-1]
     
-    pack_filename = f'{pdf_type}_{part}_Combined.pdf'
-    with open(uploadpath, "rb",buffering=0) as file_data:
-        file_data.name = pack_filename
+#     pack_filename = f'{pdf_type}_{part}_Combined.pdf'
+#     with open(uploadpath, "rb",buffering=0) as file_data:
+#         file_data.name = pack_filename
+#         file_data = base64.b64encode(file_data).decode()
+#         # This is an example of uploading a file to an Order using and order id
+#         params = {"file_object": file_data,
+#                   "id_type":"ORDER",
+#                   "id":order_id}
         
-        # This is an example of uploading a file to an Order using and order id
-        params = {"file_object": file_data,
+#         # This is an example of uploading a file to a Line Item using a Line Item id
+#         #params = {"fileobject": f,"idtype":"LINE_ITEM","id":11878375}
+#         result = mutation_GQL("upload_file_to_terminal", params)
+#         #result = client.execute(query, variable_values=params, upload_files=True)
+#     print(result)
+#     return result['uploadFiles'][0]['url']
+
+
+def upload_file_to_terminal(pdf_type, part, pdf_path, order_id):
+
+    pack_filename = f'{pdf_type}_{part}_Combined.pdf'
+    with open(pdf_path, "rb") as file_data:
+        file_content = file_data.read()  # Read the content of the file
+        file_content = base64.b64encode(file_content).decode()  # Encode the content, not the file object
+        params = {"file_object": file_content,
                   "id_type":"ORDER",
                   "id":order_id}
-        
-        # This is an example of uploading a file to a Line Item using a Line Item id
-        #params = {"fileobject": f,"idtype":"LINE_ITEM","id":11878375}
         result = mutation_GQL("upload_file_to_terminal", params)
-        #result = client.execute(query, variable_values=params, upload_files=True)
     print(result)
     return result['uploadFiles'][0]['url']
 
