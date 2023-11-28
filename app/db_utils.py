@@ -161,7 +161,7 @@ def upload_file_to_terminal(pdf_type, part, pdf_path, order_id):
         result = client.execute(
             query, variable_values=params, upload_files=True,
         )
-
+    
     return result['uploadFiles'][0]['url']
 
 

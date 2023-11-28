@@ -13,7 +13,7 @@ import os
 from os import environ as env
 from pathlib import Path
 from dotenv import load_dotenv
- 
+
 LETTER_DICT = {319903 : 'B', 
         319905 : 'B',
         319904 : 'B',
@@ -90,11 +90,17 @@ DB_USER = env['DB_USER'],
 DB_PASSWORD = env['DB_PASSWORD']
 
 
-def make_qr_code(string):
-        qr = qrcode.make(string, error_correction=qrcode.constants.ERROR_CORRECT_L)
-        qr.save(os.getcwd() + "/app/static/label_pdf/merged_qr_code.png")
-        qr_path = os.getcwd() + r"/app/static/label_pdf/merged_qr_code.png"
-        return qr_path
+from pyshorteners import Shortener
+
+
+def make_merged_pdf_qr_code(string):
+    print(string)
+    shortener = Shortener()
+    short_url = shortener.tinyurl.short(string)
+    qr = qrcode.make(short_url, error_correction=qrcode.constants.ERROR_CORRECT_M)
+    qr.save(os.getcwd() + "/app/static/label_pdf/merged_qr_code.png")
+    qr_path = os.getcwd() + r"/app/static/label_pdf/merged_qr_code.png"
+    return qr_path
 
 def download_file(url, filename):
     response = requests.get(url)

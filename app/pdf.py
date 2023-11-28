@@ -36,7 +36,16 @@ PDF_LABELS = Path.cwd() / "app" / "static" / "label_pdf"
 
 def createManifestLabel(package_id, items_df, SERVER_IP, printer):
         NUMBER_OF_ITEMS_PER_LABEL = 10
+        
+        #group items by product and finish_option
+        items_df["quantity"] = 1
+        try:
+            items_df["finishOption.name"].fillna("none", inplace=True)
+        except:
+            items_df["finishOption.name"] = ""
 
+        items_df = items_df.groupby(["product.id", "finishOption.name"], as_index=False).agg({"quantity": "sum", "product.name": "first", "product.website_image_override_url": "first"})
+        
         number_of_labels = math.ceil(len(items_df) / NUMBER_OF_ITEMS_PER_LABEL)
         print("Number of labels: " + str(number_of_labels))
         
@@ -79,9 +88,9 @@ def createManifestLabel(package_id, items_df, SERVER_IP, printer):
 
             #write Order Number
             pdf.text(.2, .9, txt='Package: '+ str(package_id))
-            pdf.set_font('Arial', 'B', size=8)
+            pdf.set_font('Arial', 'B', size=6)
             if number_of_labels > 1:
-                pdf.text(0.05, 7.3, txt='Label ' + str(label+1) + " / " + str(number_of_labels))
+                pdf.text(0.9, 7.35, txt='Label ' + str(label+1) + " / " + str(number_of_labels))
             
             #Time stamp
             # pdf.set_font('Arial', 'B', size=6)
@@ -90,7 +99,21 @@ def createManifestLabel(package_id, items_df, SERVER_IP, printer):
 
             row_count = 0
             
-            for index, post in items_df.iterrows():
+            #add a column with a default value of 1 for each row
+            
+
+            #group and aggregate the items_df by product.id and finishOption.name and sum the count of grouped items in column "quantity", keep the "first" of all the other columns
+            
+            print(items_df)
+            
+            #sort the dataframe by product.id
+            items_df = items_df.sort_values(by=["product.id"])
+            #reset the index
+            items_df = items_df.reset_index(drop=True)
+
+            image_y = 1.1
+            
+            for index, item in items_df.iterrows():
                 
                 if row_count >= NUMBER_OF_ITEMS_PER_LABEL:
                     #When label is complete, reset the index for the next label (since current labels rows were removed)
@@ -98,12 +121,29 @@ def createManifestLabel(package_id, items_df, SERVER_IP, printer):
                     break
                 
                 #Add a second line if description overflows first line
-                pdf.set_font('Arial','B', size=8)
+                
+                
+                pdf.set_font('Arial','B', size=6)
+                image_found = False
+                #add a cell to place an image, where the coordinates match the current cell's location
+                if items_df.at[index, "product.website_image_override_url"] != "none":
+                    try:
+                        pdf.image(items_df.at[index, "product.website_image_override_url"], x=.1, y=image_y, w = .4)
+                        image_found = True
+                    except:
+                        pass
+                
                 pdf.cell(.2,.15, txt="", ln=True)
+                
                 nameString = str(items_df.at[index, "product.name"])
                 lines = split_string(nameString, 39)
                 for line in lines: 
+                    pdf.cell(.5,.15, txt="", ln=False)
                     pdf.cell(.2,.14, txt=line, ln=True)
+                    if image_found:
+                        image_y += 0.1
+                    else:
+                        image_y += .15
 
                 pdf.set_font('Arial', size=7)
                 #pdf.cell(.01,.1, txt="  PRODUCT ID       FINISH                         QTY", ln=True)
@@ -111,23 +151,20 @@ def createManifestLabel(package_id, items_df, SERVER_IP, printer):
                     finish_option = ""
                 else:
                     finish_option = str(items_df.at[index, "finishOption.name"]) 
+                if len(lines) == 1:
+                    pdf.cell(.01,.1, txt="", ln=True)
                 pdf.cell(1.85,.15, txt="  "+str(items_df.at[index, "product.id"]) + "                 "  + finish_option)
                 pdf.set_font('Arial','B', size=9)
 
-
-
-                #quantity = items_df['packableItemsPivots'].apply(lambda x: x[0]['quantity'])
-                quantity = 1
-                print(quantity)
-                pdf.cell(.65,.15, txt=str(items_df.at[index,'packableItemsPivots'][0]["quantity"]), ln=True)
-                pdf.cell(.65,.15, txt=str(quantity), ln=True)
+                pdf.cell(.65,.15, txt=str(items_df.at[index, "quantity"]), ln=True)
+                #pdf.cell(.65,.15, txt=str(quantity), ln=True)
                 pdf.cell(0.1,0.06)
                 pdf.ln(.05)
 
                 row_count += 1
                 #remove row from Dataframe after rendering pdf row
                 items_df = items_df.drop(index=index)
-            
+                image_y += .42
             #save the pdf
             output_file = os.getcwd() + f"/app/static/label_pdf/label{label}.pdf"
             pdf.output(output_file)
@@ -359,12 +396,12 @@ def create_stringer_label(package_id, items_df, orderNumber, order_id, SERVER_IP
 
     if pdfLink_1 != "" and pdfLink_2 != "":
         
-        merged_pdf_file = build_merged_pdfs([SERVER_URL+"pdf_1_HL.pdf", pdfLink_2], stringer, "stringer_QR", order_id)
+        merged_pdf_url = build_merged_pdfs([SERVER_URL+"pdf_1_HL.pdf", pdfLink_2], stringer, "stringer_QR", order_id)
         time.sleep(5)
     
-        merged_pdf_url = get_terminal_file_url(package_id, stringer+"_Combined")
+        #merged_pdf_url = get_terminal_file_url(package_id, stringer+"_Combined")
         print(merged_pdf_url)
-        qr1_path = make_qr_code(merged_pdf_url)
+        qr1_path = make_merged_pdf_qr_code(merged_pdf_url)
         qr2_path = ""
     
     #draw QR Codes if file path exists
@@ -641,8 +678,8 @@ def build_merged_pdfs(pdf_list, part_name, label_type, orderID):
     outputStream.close()
 
     pack_url = upload_file_to_terminal(label_type, part_name, merged_path, orderID)
-
-    return pack_url 
+    print(pack_url)
+    return pack_url
 
 
 
