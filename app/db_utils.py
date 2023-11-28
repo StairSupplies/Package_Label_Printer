@@ -14,7 +14,7 @@ import os
 from os import environ as env
 from pathlib import Path
 from dotenv import load_dotenv
-
+from gql.transport.aiohttp import AIOHTTPTransport
 load_dotenv(dotenv_path=Path.cwd() / 'venv' / '.env')
 
 USE_STAGING = os.environ.get("DEV")
@@ -116,19 +116,33 @@ def get_terminal_file_url(package_id, filename):
 #     return result['uploadFiles'][0]['url']
 
 
+
+
+# Create the GQL query object to upload the things, the GQL Variables are "fileobject" and "id" and "idtype"
+# fileobject is the file object you pull up in python, ID type is whether it is a Product, Order or Line Item you want to add a file to.
+# Fileable_group will be deprecated.
+
+
 def upload_file_to_terminal(pdf_type, part, pdf_path, order_id):
-
-    # pack_filename = f'{pdf_type}_{part}_Combined.pdf'
-    # with open(pdf_path, "rb") as file_data:
-    #     file_content = file_data.read()  # Read the content of the file
-    #     file_content = base64.b64encode(file_content).decode()  # Encode the content, not the file object
-    #     params = {"file_object": file_content,
-    #               "id_type":"ORDER",
-    #               "id":order_id}
-    #     result = mutation_GQL("upload_file_to_terminal", params)
-    # print(result)
-    # return result['uploadFiles'][0]['url']
-
+    transport = AIOHTTPTransport(url='https://terminal.stairsupplies.com/graphql',
+                             headers={'x-api-key': 'Q5dhUlEkJXG5T4ABebLwmHXbjXht5Y'})
+    client = Client(transport=transport)
+    query = gql('''
+        mutation gql($fileobject: Upload!,$idtype:RelationType!,$id: ID!) { 
+        uploadFiles(input:{
+        files: [$fileobject]
+        fileable_id: $id
+        fileable_type: $idtype
+        fileable_group: CUSTOMER
+        }
+        ) {
+            id 
+            name  
+            url
+        }
+        }
+    '''
+    )
     uploadpath = pdf_path
     # filename = uploadpath.split('/')[-1]
     
@@ -137,14 +151,16 @@ def upload_file_to_terminal(pdf_type, part, pdf_path, order_id):
         f.name = pack_filename
         
         # This is an example of uploading a file to an Order using and order id
-        params = {"file_object": f,
-                  "id_type": "ORDER",
-                  "id": order_id}
+        params = {"fileobject": f,
+                  "idtype":"ORDER",
+                  "id":order_id}
         
         # This is an example of uploading a file to a Line Item using a Line Item id
         #params = {"fileobject": f,"idtype":"LINE_ITEM","id":11878375}
         
-        result = mutation_GQL("upload_file_to_terminal", params)
+        result = client.execute(
+            query, variable_values=params, upload_files=True,
+        )
 
     return result['uploadFiles'][0]['url']
 
