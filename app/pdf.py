@@ -589,41 +589,62 @@ def print_pdf_label(items_df, search_string, filename, SERVER_URL, printer):
     print(url)
     send_request_printall(url, printer, 1)
 
-def build_merged_pdfs(pdf_list, part_name, label_type, order_id):
-    merged_pdf = io.BytesIO()
-    writer = PdfWriter()
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (X11; Windows; Windows x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36'
-    }
+# def build_merged_pdfs(pdf_list, part_name, label_type, order_id):
+#     merged_pdf = io.BytesIO()
+#     writer = PdfWriter()
+#     headers = {
+#         'User-Agent': 'Mozilla/5.0 (X11; Windows; Windows x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36'
+#     }
 
-    for pdf_url in pdf_list:
-        try:
-            response = requests.get(url=pdf_url, headers=headers, timeout=120)
-            response.raise_for_status()  # Raise an error for bad status codes
-            mem_pdf = io.BytesIO(response.content)
-            pdf_open = PdfReader(mem_pdf)
-            writer.append_pages_from_reader(pdf_open)
-        except requests.RequestException as e:
-            print(f"Error fetching PDF from {pdf_url}: {e}")
-            return None
-        except Exception as e:
-            print(f"Error processing PDF from {pdf_url}: {e}")
-            return None
+#     for pdf_url in pdf_list:
+#         try:
+#             response = requests.get(url=pdf_url, headers=headers, timeout=120)
+#             response.raise_for_status()  # Raise an error for bad status codes
+#             mem_pdf = io.BytesIO(response.content)
+#             pdf_open = PdfReader(mem_pdf)
+#             writer.append_pages_from_reader(pdf_open)
+#         except requests.RequestException as e:
+#             print(f"Error fetching PDF from {pdf_url}: {e}")
+#             return None
+#         except Exception as e:
+#             print(f"Error processing PDF from {pdf_url}: {e}")
+#             return None
 
-    try:
-        writer.write(merged_pdf)
-        merged_pdf.seek(0)  # Rewind to beginning of file before uploading
-        #save the file to a local directory
-        # with open(PDF_TEMP_FOLDER / "merged.pdf", "wb") as f:
-        #     f.write(merged_pdf.read())
-        merged_pdf_path = PDF_TEMP_FOLDER / "merged.pdf"
+#     try:
+#         writer.write(merged_pdf)
+#         merged_pdf.seek(0)  # Rewind to beginning of file before uploading
+#         #save the file to a local directory
+#         # with open(PDF_TEMP_FOLDER / "merged.pdf", "wb") as f:
+#         #     f.write(merged_pdf.read())
+#         merged_pdf_path = PDF_TEMP_FOLDER / "merged.pdf"
         
-        pack_url = upload_file_to_terminal(label_type, part_name, merged_pdf_path, order_id)
-        return pack_url
-    except Exception as e:
-        traceback.print_exc()
-        print(f"Error merging/writing PDFs: {e}")
-        return None
+#         pack_url = upload_file_to_terminal(label_type, part_name, merged_pdf_path, order_id)
+#         return pack_url
+#     except Exception as e:
+#         traceback.print_exc()
+#         print(f"Error merging/writing PDFs: {e}")
+#         return None
+
+
+def build_merged_pdfs(pdf_list, part_name, label_type, orderID):
+    merged_path = PDF_TEMP_FOLDER / "merged.pdf"
+    headers = {'User-Agent': 'Mozilla/5.0 (X11; Windows; Windows x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36'}
+    writer = PdfWriter()
+    for pdf in pdf_list:
+        response = requests.get(url=pdf, headers=headers, timeout=120)
+        mem_pdf = io.BytesIO(response.content)
+        pdf_open = PdfReader(mem_pdf)
+        writer.append_pages_from_reader(pdf_open)
+
+    outputStream = open(merged_path,"wb")
+    writer.write(outputStream)
+    outputStream.close()
+
+    pack_url = upload_file_to_terminal(label_type, part_name, merged_path, orderID)
+
+    return pack_url 
+
+
 
 def split_string(string, n):
     """Split a string into chunks of length n, while keeping words together."""

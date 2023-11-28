@@ -118,15 +118,34 @@ def get_terminal_file_url(package_id, filename):
 
 def upload_file_to_terminal(pdf_type, part, pdf_path, order_id):
 
+    # pack_filename = f'{pdf_type}_{part}_Combined.pdf'
+    # with open(pdf_path, "rb") as file_data:
+    #     file_content = file_data.read()  # Read the content of the file
+    #     file_content = base64.b64encode(file_content).decode()  # Encode the content, not the file object
+    #     params = {"file_object": file_content,
+    #               "id_type":"ORDER",
+    #               "id":order_id}
+    #     result = mutation_GQL("upload_file_to_terminal", params)
+    # print(result)
+    # return result['uploadFiles'][0]['url']
+
+    uploadpath = pdf_path
+    # filename = uploadpath.split('/')[-1]
+    
     pack_filename = f'{pdf_type}_{part}_Combined.pdf'
-    with open(pdf_path, "rb") as file_data:
-        file_content = file_data.read()  # Read the content of the file
-        file_content = base64.b64encode(file_content).decode()  # Encode the content, not the file object
-        params = {"file_object": file_content,
-                  "id_type":"ORDER",
-                  "id":order_id}
+    with open(uploadpath, "rb",buffering=0) as f:
+        f.name = pack_filename
+        
+        # This is an example of uploading a file to an Order using and order id
+        params = {"file_object": f,
+                  "id_type": "ORDER",
+                  "id": order_id}
+        
+        # This is an example of uploading a file to a Line Item using a Line Item id
+        #params = {"fileobject": f,"idtype":"LINE_ITEM","id":11878375}
+        
         result = mutation_GQL("upload_file_to_terminal", params)
-    print(result)
+
     return result['uploadFiles'][0]['url']
 
 
